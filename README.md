@@ -14,8 +14,8 @@ We have to perform a manual operation check for all of the systems we have.  The
   1. Opens applications of your selection 
   1. The Building, Room, Desk, and phone number of where the workstation is located. 
 
-### Example of the information recorded
-
+### Information recorded
+#### Basic information
 1. ComputerName 
 1. SerialNumber       
 1. MacAddress    
@@ -26,14 +26,20 @@ We have to perform a manual operation check for all of the systems we have.  The
 1. Department                
 1. Building             
 1. Room               
-1. Desk                    
-1. Adobe Version                     
-1. Mozilla Firefox Version              
-1. McAfee Agent Version                      
-1. Adobe Test                     
-1. MS Office Test             
-1. Phone           
-1. Notes   Any notes that you want to add to the spreadsheet for later      
+1. Desk - Starting from "A" and the first desk on the left moving clockwise around the room.                   
+1. Phone - Must be in the 123-123-1234 format 
+1. Notes - Any notes that you want to add to the spreadsheet for later      
+
+#### User Customizable
+
+1. Software Version - Returns the versions of the software requested
+   1. Mozilla Firefox Version
+   1. McAfee Agent Version 
+   1. Adobe Test               
+1. Operational Test - Opens a specific file or just the program to ensure the basic configuration is good and completed.
+   1. MS Office Test
+   1. Acrobat
+
 
 
 
