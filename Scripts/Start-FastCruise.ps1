@@ -3,11 +3,13 @@
 # Edit the Variables
 $SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
 
-$jsonFilePath = 'C:\Users\Erik.Arnesen\Documents\GitHub\KnarrStudio\Tools-DeskSideSupport\Scripts\computerlocation.json' 
+[Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
+
+$jsonFilePath = '..\Configfiles\computerlocation.json'
 
 #Edit the splats to customize the script
 $FastCruiseSplat = @{
-  FastCruiseReportPath = 'C:\temp\Report'
+  FastCruiseReportPath = '..\Reports'
   FastCruiseFile       = 'FastCruise.csv'
   Verbose              = $true
 }
@@ -270,7 +272,6 @@ function Start-FastCruise
         return $hash
       }
 
-      [Object[]]$Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
 
       if(Test-Path -Path $jsonFilePath -ErrorAction SilentlyContinue)
       {
