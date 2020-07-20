@@ -92,7 +92,7 @@ function Start-FastCruise
 
 
     <#bookmark Vb Form #>
-    function Show-VbForm
+    function Show-VbForm    
     {
       <#
           .SYNOPSIS
@@ -135,18 +135,17 @@ function Start-FastCruise
     } # End VbForm-Function
 
     <#bookmark Application Test #>
-    function Start-ApplicationTest
+    function Start-ApplicationTest    
     {
       <#
           .SYNOPSIS
           Tests the applications passed to see if it will start.
       #>
-
-
+  
       param
       (
         [Parameter(Mandatory, Position = 0)]
-        [string]$FunctionTest,
+        [Switch]$WaitTest,
         [Parameter(Mandatory, Position = 1)]
         [string]$TestFile,
         [Parameter(Mandatory, Position = 2)]
@@ -158,38 +157,36 @@ function Start-FastCruise
         FunctionResult = 'Good', 'Failed'
       }
       Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
-      if($FunctionTest -eq 'Yes')
-      {
-        try
-        {
-          Write-Verbose -Message ('Attempting to open {0} with {1}' -f $TestFile, $ProcessName)
-          #Start-Process -FilePath $TestProgram -ArgumentList $TestFile
-          Start-Process -FilePath $TestFile
 
-          Write-Host -Object ('The Fast Cruise Script will continue after {0} has been closed.' -f $ProcessName) -BackgroundColor Red -ForegroundColor Yellow
-          Write-Verbose -Message ('Wait-Process: {0}' -f $ProcessName)
-          Wait-Process -Name $ProcessName
-
-          $TestResult = $DescriptionLists.FunctionResult | Out-GridView -Title $ProcessName -OutputMode Single
-        }
-        Catch
-        {
-          Write-Verbose -Message 'TestResult: Failed'
-          $TestResult = $DescriptionLists.FunctionResult[1]
-          # get error record
-          $ErrorMessage  = $_.exception.message
-          Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
-        }
-      }
-      else
+      try
       {
-        Write-Verbose -Message 'TestResult: Bypassed'
-        $TestResult = 'Bypassed'
+        Write-Verbose -Message ('Attempting to open {0} with {1}' -f $TestFile, $ProcessName)
+        #Start-Process -FilePath $TestProgram -ArgumentList $TestFile
+        Start-Process -FilePath $TestFile
       }
+      Catch
+      {
+        Write-Verbose -Message 'TestResult: Failed'
+        $TestResult = $DescriptionLists.FunctionResult[1]
+        # get error record
+        $ErrorMessage  = $_.exception.message
+        Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
+      }
+  
+      if($WaitTest)
+      {
+        Write-Host -Object ('The Fast Cruise Script will continue after {0} has been closed.' -f $ProcessName) -BackgroundColor Red -ForegroundColor Yellow
+        Write-Verbose -Message ('Wait-Process: {0}' -f $ProcessName)
+        Wait-Process -Name $ProcessName
+      }
+
+      $TestResult = $DescriptionLists.FunctionResult | Out-GridView -Title $ProcessName -OutputMode Single
+
       Return $TestResult
     } # End ApplicationTest-Function
 
-    function Get-LastComputerStatus
+    <#bookmark Get Computer status last recorded #>
+    function Get-LastComputerStatus    
     {
       <#
           .SYNOPSIS
@@ -230,7 +227,8 @@ function Start-FastCruise
       Return $LatestStatus
     } # End ComputerStatus-Function
 
-    function Get-ComputerLocation 
+    <#bookmark Computer Location #>
+    function Get-ComputerLocation     
     {
       <#
           .SYNOPSIS
@@ -292,9 +290,9 @@ function Start-FastCruise
         [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
       }
     } # End Location-Function
-
-
-    Function Get-InstalledSoftware
+      
+    <#bookmark Get Installed Software #>
+    Function Get-InstalledSoftware    
     {
       [cmdletbinding(SupportsPaging)]
       Param(
@@ -358,7 +356,8 @@ function Start-FastCruise
       }
     } # End InstalledSoftware-Function
 
-    function Get-MacAddress 
+    <#bookmark Get MAC Address #>
+    function Get-MacAddress     
     {
       param(
         [Parameter(Position = 0)]
@@ -374,13 +373,13 @@ function Start-FastCruise
         $MacInfo = $MacAddress
       }
       $MacInfo
-    }
+    } # End MacAddress-Function
 
     <#bookmark Windows Updates #> 
     $LatestWSUSupdate = (New-Object -ComObject 'Microsoft.Update.AutoUpdate'). Results 
 
-    Write-Verbose -Message 'Setting up the ComputerStat hash'
     <#bookmark ComputerStat Hashtable #>
+    Write-Verbose -Message 'Setting up the ComputerStat hash'
     $ComputerStat = [ordered]@{
       'ComputerName'       = "$env:COMPUTERNAME"
       'SerialNumber'       = 'N/A'
@@ -450,12 +449,18 @@ Phone
     <#bookmark Application Test #> 
     $FunctionTest = Show-VbForm -YesNoBox -Message 'Perform Applicaion Tests (MS Office and Adobe)?' 
 
-    $ComputerStat['Adobe Test'] = Start-ApplicationTest -FunctionTest $FunctionTest @PDFApplicationTestSplat
-    $ComputerStat['MS Office Test'] = Start-ApplicationTest -FunctionTest $FunctionTest @PowerPointApplicationTestSplat
-
-    <#    $ComputerStat['MS Office Test'] = $PowerPointResult
-        $ComputerStat['Adobe Test'] = $AdobeResult
-    #>
+    if($FunctionTest -eq 'Yes')
+    {
+      $ComputerStat['Adobe Test'] = Start-ApplicationTest -WaitTest @PDFApplicationTestSplat
+      $ComputerStat['MS Office Test'] = Start-ApplicationTest -WaitTest @PowerPointApplicationTestSplat
+    }
+    Else
+    {
+      Write-Verbose -Message 'TestResult: Bypassed'
+      $TestResult = 'Bypassed'
+      $ComputerStat['MS Office Test'] = $TestResult
+      $ComputerStat['Adobe Test'] = $TestResult
+    }
 
     $LocationVerification = Show-VbForm -YesNoBox -Message $ComputerLocation
 
@@ -519,102 +524,6 @@ Phone
     Select-Object -Last 4 -Property Date, Username, Building, Room, Phone |
     Format-Table
   } #End END region
-}
-
-<#bookmark Send email #>
-function Send-eMail 
-{
-  [CmdletBinding(DefaultParameterSetName = 'Default')]
-  param
-  (
-    [Parameter(Mandatory,HelpMessage = 'To email address(es)', Position = 0)]
-    [String[]]$MailTo,
-    [Parameter(Mandatory,HelpMessage = 'From email address', Position = 1)]
-    [Object]$MailFrom,
-    [Parameter(Mandatory,HelpMessage = 'Email subject', Position = 2)]
-    [Object]$msgsubj,
-    [Parameter(Mandatory,HelpMessage = 'SMTP Server(s)', Position = 3)]
-    [String[]]$SmtpServers,
-    [Parameter(Position = 4)]
-    [AllowNull()]
-    $MessageBody,
-    [Parameter(Position = 5)]
-    [AllowNull()]
-    [Object]$AttachedFile,
-    [Parameter(Position = 6)]
-    [AllowEmptyString()]
-    [string]$ErrorFile = ''
-  )
-
-  $DateTime = Get-Date -Format s
-
-  if([string]::IsNullOrEmpty($MessageBody))
-  {
-    $MessageBody = ('{1} - Email generated from {0}' -f $env:COMPUTERNAME, $DateTime)
-    Write-Warning -Message 'Setting Message Body to default message'
-  }
-  elseif(($MessageBody -match '.txt') -or ($MessageBody -match '.htm'))
-  {
-    if(Test-Path -Path $MessageBody)
-    {
-      [String]$MessageBody = Get-Content -Path $MessageBody
-    }
-  }
-  elseif(-not ($MessageBody -is [String]))
-  {
-    $MessageBody = ('{0} - Original message was not sent as a String.' -f $DateTime)
-  }
-  else
-  {
-    $MessageBody = ("{0}`n{1}" -f $MessageBody, $DateTime)
-  }
-    
-  if([string]::IsNullOrEmpty($ErrorFile))
-  {
-    $ErrorFile = New-TemporaryFile
-    Write-Warning  -Message ('Setting Error File to: {0}' -f $ErrorFile)
-  }
-  $SplatSendMessage = @{
-    From        = $MailFrom
-    To          = $MailTo
-    Subject     = $msgsubj
-    Body        = $MessageBody
-    Priority    = 'High'
-    ErrorAction = 'Stop'
-  }
-  
-  if($AttachedFile)
-  {
-    Write-Verbose -Message 'Inserting file attachment'
-    $SplatSendMessage.Attachments = $AttachedFile
-  }
-  if($MessageBody.Contains('html'))
-  {
-    Write-Verbose -Message 'Setting Message Body to HTML'
-    $SplatSendMessage.BodyAsHtml  = $true
-  }
-  
-  foreach($SMTPServer in $SmtpServers)
-  {
-    try
-    {
-      Write-Verbose -Message ('Try to send mail thru {0}' -f $SMTPServer)
-      Send-MailMessage -SmtpServer $SMTPServer  @SplatSendMessage
-      # Write-Output $SMTPServer  @SplatSendMessage
-      Write-Verbose -Message ('successful from {0}' -f $SMTPServer)
-      Write-Host -Object ("`nsuccessful from {0}" -f $SMTPServer) -ForegroundColor green
-      Break 
-    } 
-    catch 
-    {
-      # get error record
-      $ErrorMessage  = $_.exception.message
-      Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
-      ('Unable to send message thru {0} server' -f $SMTPServer) | Out-File -FilePath $ErrorFile -Append
-      ('- {0}' -f $ErrorMessage) | Out-File -FilePath $ErrorFile -Append
-      Write-Verbose -Message ('Errors written to: {0}' -f $ErrorFile)
-    }
-  }
 }
 
 <#bookmark ASCII Menu #>
@@ -691,15 +600,15 @@ function Show-AsciiMenu
       Switch ($DrawLine) {
         Top 
         {
-          Write-Host ('╔{0}╗' -f $HorizontalLine) -ForegroundColor $LineColor
+          Write-Host -Object ('╔{0}╗' -f $HorizontalLine) -ForegroundColor $LineColor
         }
         Middle 
         {
-          Write-Host ('╠{0}╣' -f $HorizontalLine) -ForegroundColor $LineColor
+          Write-Host -Object ('╠{0}╣' -f $HorizontalLine) -ForegroundColor $LineColor
         }
         Bottom 
         {
-          Write-Host ('╚{0}╝' -f $HorizontalLine) -ForegroundColor $LineColor
+          Write-Host -Object ('╚{0}╝' -f $HorizontalLine) -ForegroundColor $LineColor
         }
       }
     }
@@ -714,13 +623,13 @@ function Show-AsciiMenu
     }
     function Write-MenuTitle
     {
-      Write-Host ('{0}{1}' -f $VertLine, $TextPadding) -NoNewline -ForegroundColor $LineColor
-      Write-Host ($Title) -NoNewline -ForegroundColor $TitleColor
+      Write-Host -Object ('{0}{1}' -f $VertLine, $TextPadding) -NoNewline -ForegroundColor $LineColor
+      Write-Host -Object ($Title) -NoNewline -ForegroundColor $TitleColor
       if($TotalTitlePadding % 2 -eq 1)
       {
         $TextPadding = Get-Padding -Multiplier ($TitlePaddingCount + 1)
       }
-      Write-Host ('{0}{1}' -f $TextPadding, $VertLine) -ForegroundColor $LineColor
+      Write-Host -Object ('{0}{1}' -f $TextPadding, $VertLine) -ForegroundColor $LineColor
     }
     function Write-MenuItems
     {
@@ -729,9 +638,9 @@ function Show-AsciiMenu
         $number = $i++
         $ItemPaddingCount = $TotalLineWidth - $menuItem.Length - 6 #This number is needed to offset the Tab, space and 'dot'
         $ItemPadding = Get-Padding -Multiplier $ItemPaddingCount
-        Write-Host $VertLine  -NoNewline -ForegroundColor $LineColor
-        Write-Host ('{0}{1}. {2}{3}' -f $Tab, $number, $menuItem, $ItemPadding) -NoNewline -ForegroundColor $LineColor
-        Write-Host $VertLine -ForegroundColor $LineColor
+        Write-Host -Object $VertLine  -NoNewline -ForegroundColor $LineColor
+        Write-Host -Object ('{0}{1}. {2}{3}' -f $Tab, $number, $menuItem, $ItemPadding) -NoNewline -ForegroundColor $LineColor
+        Write-Host -Object $VertLine -ForegroundColor $LineColor
       }
     }
   }
@@ -803,7 +712,7 @@ do
     1 
     {
       Clear-Host #Clears the console.  This shouldn't be needed once the script can be run directly from PS
-      Write-Host "`n`n"
+      Write-Host -Object "`n`n"
       Start-FastCruise @FastCruiseSplat # Make sure you have updated and completed the "Splats" at the top of the script
     }
     2 
