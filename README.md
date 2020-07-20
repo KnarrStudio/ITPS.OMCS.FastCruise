@@ -16,8 +16,7 @@ We have to perform a manual operation check for all of the systems we have.  The
 
 ### Example of the information recorded
 
-1. Name                           Value                                                                                                                        
-1. ----                           -----                                                                                                                        
+1. * Name                           Value *
 1. ComputerName                   Workstation Hostname
 1. SerialNumber                   123456789           
 1. MacAddress                     08-3E-8E-43-01-99   
