@@ -16,25 +16,24 @@ We have to perform a manual operation check for all of the systems we have.  The
 
 ### Example of the information recorded
 
-
-1. ComputerName               Workstation Hostname
-1. SerialNumber               123456789           
-1. MacAddress                 08-3E-8E-43-01-99   
-1. UserName                   Username
-1. Date                       07/19/2020 22:48:27  
-1. WSUS Search Success        7/20/2020 00:15:02   
-1. WSUS Install Success       7/20/2020 00:15:14   
-1. Department                 Packing                 
-1. Building                   Beef-01              
-1. Room                       Weighing              
-1. Desk                       A                    
-1. Adobe Version              22.25                     
-1. Mozilla Firefox Version    45.2541                
-1. McAfee Agent Version       98.9.21                     
-1. Adobe Test                 Passed              
-1. MS Office Test             Failed               
-1. Phone                      757-555-5874         
-1. Notes                      Any notes that you want to add to the spreadsheet for later      
+1. ComputerName 
+1. SerialNumber       
+1. MacAddress    
+1. UserName   
+1. Date   
+1. WSUS Search Success  
+1. WSUS Install Success 
+1. Department                
+1. Building             
+1. Room               
+1. Desk                    
+1. Adobe Version                     
+1. Mozilla Firefox Version              
+1. McAfee Agent Version                      
+1. Adobe Test                     
+1. MS Office Test             
+1. Phone           
+1. Notes   Any notes that you want to add to the spreadsheet for later      
 
 
 
