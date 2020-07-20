@@ -1,4 +1,6 @@
 # ITPS.OMCS.FastCruise 
+This is another tool that is being added to the "IT PowerShell Open Mind Common Sense" tools set.
+
 
 ## The Fast Cruise 
 We have to perform a manual operation check for all of the systems we have.  The term that we use for this is a "Fast Cruise". A fast cruise is a simulated underway period that prepares the crew for life at sea.  The fast cruise checks started out as a manual checks using a check sheet.  As with most manual processes we found that the results were not always accurate, not complete and sometimes duplicated.  The initial script was part of the check sheet.  The things morphed to only the script, but that didn't solve the problem of testing the mouse and keyboard or even seeing if they are there.  As it is written now, the premise is that the person doing the operational test will login to the system, thereby testing the human interface devices, and then runs the script it captures the data we are interested in with user intervention.  The primary example is the location of the device, and making sure that it is correct. 
