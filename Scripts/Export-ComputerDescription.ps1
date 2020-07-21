@@ -65,7 +65,7 @@
     $MacFour = Get-LastFour -MacAddress $_.MacAddress
     $ADDescription = New-Object -TypeName System.Object
     $ADDescription | Add-Member -MemberType NoteProperty -Name 'ComputerName' -Value $_.ComputerName
-    $ADDescription | Add-Member -MemberType NoteProperty -Name 'ComputerDescription' -Value ('OSD-OMC-{0}-{1}-{2}{3} [{4}]' -f $_.Department, $_.Building, $_.Room, $_.Desk, $MacFour) 
+    $ADDescription | Add-Member -MemberType NoteProperty -Name 'ComputerDescription' -Value ('KnarrStudio-{0}-{1}-{2}{3} [{4}]' -f $_.Department, $_.Building, $_.Room, $_.Desk, $MacFour) 
 
     $FullDescriptionList += $ADDescription
   }
