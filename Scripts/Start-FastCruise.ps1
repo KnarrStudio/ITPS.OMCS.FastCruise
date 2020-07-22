@@ -357,6 +357,27 @@ function Start-FastCruise
       }
     } # End InstalledSoftware-Function
 
+
+    <#bookmark Workstation Information #>
+    function Get-WorkstationInfo    
+    {
+      param(
+        [Parameter(Position = 0)]
+        [ValidateSet('Manufacturer','Model','Name','PrimaryOwnerName','Domain','serialnumber')] 
+        [String]$Info
+      )
+      Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
+
+      if($Info -eq 'serialnumber'){
+        (Get-WmiObject -Class win32_SystemEnclosure).serialnumber
+      }
+      else{
+        (Get-WmiObject -Class:Win32_ComputerSystem).$Info
+
+      }
+
+    } # End Workstation Information-Function
+
     <#bookmark Get MAC Address #>
     function Get-MacAddress     
     {
@@ -382,11 +403,11 @@ function Start-FastCruise
     <#bookmark ComputerStat Hashtable #>
     Write-Verbose -Message 'Setting up the ComputerStat hash'
     $ComputerStat = [ordered]@{
+      'Date'               = "$(Get-Date)"
       'ComputerName'       = "$env:COMPUTERNAME"
       'SerialNumber'       = 'N/A'
       'MacAddress'         = 'N/A'
       'UserName'           = "$env:USERNAME"
-      'Date'               = "$(Get-Date)"
       'WSUS Search Success' = 'N/A'
       'WSUS Install Success' = 'N/A'
       'Department'         = 'N/A'
@@ -404,8 +425,13 @@ function Start-FastCruise
     $ComputerStat['MacAddress'] = Get-MacAddress
     
     Write-Verbose -Message 'Getting Serial Number'
-    $ComputerStat['SerialNumber'] = (Get-WmiObject -Class win32_SystemEnclosure).serialnumber
-    
+    $ComputerStat['SerialNumber'] = Get-WorkstationInfo -Info serialnumber
+
+    Write-Verbose -Message 'Getting Manufacturer'
+    $ComputerStat['Manufacturer'] = Get-WorkstationInfo -Info Manufacturer
+
+    Write-Verbose -Message 'Getting Model'
+    $ComputerStat['Model'] = Get-WorkstationInfo -Info Model
 
     <#bookmark Software Versions #>
     #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
