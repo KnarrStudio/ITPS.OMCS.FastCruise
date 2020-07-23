@@ -55,7 +55,7 @@ function Start-FastCruise
   {
     Write-Verbose -Message 'Setup Variables'
     #$LocationVerification = $null
-    #$ComputerName = $env:COMPUTERNAME
+    $ComputerName = $env:COMPUTERNAME
 
     Write-Verbose -Message 'Setup Report' 
     $YearMonth = Get-Date -Format yyyy-MMMM
@@ -66,6 +66,8 @@ function Start-FastCruise
       # Check if computer is connected to domain network
       [void]::([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain())
 
+      Write-Output -InputObject ('Authentication Server: ' -f $env:LOGONSERVER)
+
       if(-not (Test-Path -Path $FastCruiseReportPath))
       {
         Write-Verbose -Message 'Path not found.  Creating the Directory now.'
@@ -74,8 +76,9 @@ function Start-FastCruise
     }
     catch
     {
+      Write-Verbose -Message ('Local Workstation: ' -f $ComputerName)
       Write-Warning  -Message ('Network path not available') 
-      Write-Output -InputObject ('{0}' -f $FastCruiseReport)
+      #Write-Output -InputObject ('{0}' -f $FastCruiseReport)
       $FastCruiseReportPath = $env:TEMP
       #$FastCruiseReport = ('{0}\{1}' -f $FastCruiseReportPath, $FastCruiseFile)
     }
@@ -762,7 +765,10 @@ do
 {
   #Show-AsciiMenu -Title 'THIS IS THE TITLE' -MenuItems 'Exchange Server', 'Active Directory', 'Sytem Center Configuration Manager', 'Lync Server' -TitleColor Red  -MenuItemColor green
   Show-AsciiMenu -Title 'EXIT STRATAGY' -MenuItems '(Re)Start-Fastcruise', 'Restart Computer', 'Quit to Prompt' #-Debug
-  $Raspberry = Read-Host -Prompt 'Select Number'
+
+  if($Raspberry -ne 1){
+   $Raspberry = Read-Host -Prompt 'Select Number'
+   }
 
   switch($Raspberry)
   {
