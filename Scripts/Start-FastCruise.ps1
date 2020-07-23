@@ -10,7 +10,13 @@ $jsonFilePath = '..\Configfiles\computerlocation.json'
 #Edit the splats to customize the script
 $FastCruiseSplat = @{
   FastCruiseReportPath = '..\Reports'
-  FastCruiseFile       = 'FastCruise.csv'
+  FastCruiseFile       = 'TestCruise.csv'
+  Verbose              = $true
+}
+$ManualInputSplat = @{
+  FastCruiseReportPath = '..\Reports'
+  FastCruiseFile       = 'TestCruise.csv'
+  ManualInput          = $true
   Verbose              = $true
 }
 $PDFApplicationTestSplat = @{
@@ -38,7 +44,7 @@ function Start-FastCruise
   (
     [Parameter(Mandatory, Position = 0)]
     [String]$FastCruiseReportPath,
-    [Parameter(Mandatory, Position = 0)]
+    [Parameter(Mandatory, Position = 1)]
     [ValidateScript({
           If($_ -match '.csv')
           {
@@ -48,7 +54,10 @@ function Start-FastCruise
           {
             Throw 'Input file needs to be CSV'
           }
-    })][String]$FastCruiseFile
+    })][String]$FastCruiseFile,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [Switch]$ManualInput
+
   )
 
   Begin
@@ -56,6 +65,7 @@ function Start-FastCruise
     Write-Verbose -Message 'Setup Variables'
     #$LocationVerification = $null
     $ComputerName = $env:COMPUTERNAME
+    
 
     Write-Verbose -Message 'Setup Report' 
     $YearMonth = Get-Date -Format yyyy-MMMM
@@ -377,7 +387,7 @@ function Start-FastCruise
     function Get-WorkstationInfo    
     {
       param(
-        [Parameter(Mandatory=$true,Position = 0)]
+        [Parameter(Mandatory = $true,Position = 0)]
         [ValidateSet('Manufacturer','Model','Name','PrimaryOwnerName','Domain','serialnumber','PartOfDomain','Workgroup')] 
         [String]$Info
       )
@@ -411,10 +421,7 @@ function Start-FastCruise
       }
       $MacInfo
     } # End MacAddress-Function
-
-    <#bookmark Windows Updates #> 
-    $LatestWSUSupdate = (New-Object -ComObject 'Microsoft.Update.AutoUpdate'). Results 
-
+        
     <#bookmark ComputerStat Hashtable #>
     Write-Verbose -Message 'Setting up the ComputerStat hash'
     $ComputerStat = [ordered]@{
@@ -431,59 +438,64 @@ function Start-FastCruise
       'Desk'               = 'N/A'
     }
 
-
-
-
   } #End BEGIN region
 
   Process
   {
-    <#bookmark Get-MacAddress #>
-    Write-Verbose -Message 'Getting Mac Address'
-    $ComputerStat['MacAddress'] = Get-MacAddress
+    if($ManualInput -eq $false)
+    {
+      <#bookmark Windows Updates #> 
+      $LatestWSUSupdate = (New-Object -ComObject 'Microsoft.Update.AutoUpdate'). Results 
+
+      $ComputerStat['WSUS Search Success'] = $LatestWSUSupdate.LastSearchSuccessDate
+      $ComputerStat['WSUS Install Success'] = $LatestWSUSupdate.LastInstallationSuccessDate
+
+      <#bookmark Get-MacAddress #>
+      Write-Verbose -Message 'Getting Mac Address'
+      $ComputerStat['MacAddress'] = Get-MacAddress
     
-    Write-Verbose -Message 'Getting Serial Number'
-    $ComputerStat['SerialNumber'] = Get-WorkstationInfo -Info serialnumber
+      Write-Verbose -Message 'Getting Serial Number'
+      $ComputerStat['SerialNumber'] = Get-WorkstationInfo -Info serialnumber
 
-    Write-Verbose -Message 'Getting Manufacturer'
-    $ComputerStat['Manufacturer'] = Get-WorkstationInfo -Info Manufacturer
+      Write-Verbose -Message 'Getting Manufacturer'
+      $ComputerStat['Manufacturer'] = Get-WorkstationInfo -Info Manufacturer
 
-    Write-Verbose -Message 'Getting Model'
-    $ComputerStat['Model'] = Get-WorkstationInfo -Info Model
+      Write-Verbose -Message 'Getting Model'
+      $ComputerStat['Model'] = Get-WorkstationInfo -Info Model
 
-    $PartOfDomain = Get-WorkstationInfo -Info PartOfDomain
+      $PartOfDomain = Get-WorkstationInfo -Info PartOfDomain
 
-    if($PartOfDomain -eq $true)
-    {
-      Write-Verbose -Message 'Getting Domain'
-      $ComputerStat['Domain'] = Get-WorkstationInfo -Info Domain
-    }
-    else
-    {
-      Write-Verbose -Message 'Getting Workgroup'
-      $ComputerStat['WorkGroup'] = Get-WorkstationInfo -Info Workgroup
+      if($PartOfDomain -eq $true)
+      {
+        Write-Verbose -Message 'Getting Domain'
+        $ComputerStat['Domain'] = Get-WorkstationInfo -Info Domain
+      }
+      else
+      {
+        Write-Verbose -Message 'Getting Workgroup'
+        $ComputerStat['WorkGroup'] = Get-WorkstationInfo -Info Workgroup
     
-      $FastCruiseReport = "$env:TEMP\FastCruise.csv"
-      Write-Warning  -Message ('This computer is not attached to the domain') 
-      Write-Output -InputObject ('{0}' -f $FastCruiseReport)
-    }
+        $FastCruiseReport = "$env:TEMP\FastCruise.csv"
+        Write-Warning  -Message ('This computer is not attached to the domain') 
+        Write-Output -InputObject ('{0}' -f $FastCruiseReport)
+      }
 
-    <#bookmark Software Versions #>
-    #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
+      <#bookmark Software Versions #>
+      #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
 
-    #$SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
-    foreach($SoftwareItem in $SoftwareChecks)
-    {
-      $ComputerStat["$SoftwareItem"] = Get-InstalledSoftware -SoftwareName $SoftwareItem[0] -SelectParameter DisplayVersion
-    }
+      #$SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
+      foreach($SoftwareItem in $SoftwareChecks)
+      {
+        $ComputerStat["$SoftwareItem"] = Get-InstalledSoftware -SoftwareName $SoftwareItem[0] -SelectParameter DisplayVersion
+      }
 
-    Write-Verbose -Message 'Getting Last Status recorded'
-    $LatestStatus = (Get-LastComputerStatus -FastCruiseReport $FastCruiseReport) 
-    #Write-Output -InputObject 'Latest Status'
-    #$LatestStatus | Select-Object -Property Computername, Department, Building, Room, Desk
+      Write-Verbose -Message 'Getting Last Status recorded'
+      $LatestStatus = (Get-LastComputerStatus -FastCruiseReport $FastCruiseReport) 
+      #Write-Output -InputObject 'Latest Status'
+      #$LatestStatus | Select-Object -Property Computername, Department, Building, Room, Desk
 
-    <#bookmark Location Verification #>
-    $ComputerLocation = (@'
+      <#bookmark Location Verification #>
+      $ComputerLocation = (@'
 
 ComputerName: (Assest Tag)
 - {0}
@@ -508,23 +520,35 @@ Phone
           
 '@ -f $LatestStatus.ComputerName, $LatestStatus.Department, $LatestStatus.Building, $LatestStatus.Room, $LatestStatus.Desk, $LatestStatus.Phone, $LatestStatus.SerialNumber)
 
-    <#bookmark Application Test #> 
-    $FunctionTest = Show-VbForm -YesNoBox -Message 'Perform Applicaion Tests (MS Office and Adobe)?' 
+      <#bookmark Application Test #> 
+      $FunctionTest = Show-VbForm -YesNoBox -Message 'Perform Applicaion Tests (MS Office and Adobe)?' 
 
-    if($FunctionTest -eq 'Yes')
-    {
-      $ComputerStat['Adobe Test'] = Start-ApplicationTest -WaitTest @PDFApplicationTestSplat
-      $ComputerStat['MS Office Test'] = Start-ApplicationTest -WaitTest @PowerPointApplicationTestSplat
+      if($FunctionTest -eq 'Yes')
+      {
+        $ComputerStat['Adobe Test'] = Start-ApplicationTest -WaitTest @PDFApplicationTestSplat
+        $ComputerStat['MS Office Test'] = Start-ApplicationTest -WaitTest @PowerPointApplicationTestSplat
+      }
+      Else
+      {
+        Write-Verbose -Message 'TestResult: Bypassed'
+        $TestResult = 'Bypassed'
+        $ComputerStat['MS Office Test'] = $TestResult
+        $ComputerStat['Adobe Test'] = $TestResult
+      }
+
+      $LocationVerification = Show-VbForm -YesNoBox -Message $ComputerLocation
     }
-    Else
+    if($ManualInput -eq $true)
     {
-      Write-Verbose -Message 'TestResult: Bypassed'
-      $TestResult = 'Bypassed'
+      $LocationVerification = 'No'
+          
+      $ComputerStat['ComputerName'] = Show-VbForm -InputBox -Message 'ComputerName: (Assest Tag)' -TitleBar 'ComputerName'
+      $ComputerStat['SerialNumber'] = 'Manual Input'
+
+      $TestResult = 'Manual Input'
       $ComputerStat['MS Office Test'] = $TestResult
       $ComputerStat['Adobe Test'] = $TestResult
     }
-
-    $LocationVerification = Show-VbForm -YesNoBox -Message $ComputerLocation
 
     if($LocationVerification -eq 'No')
     {
@@ -559,10 +583,6 @@ Phone
       $ComputerStat['Phone'] = $Phone
     }
 
-    <#bookmark Windows Update Status #> 
-    $ComputerStat['WSUS Search Success'] = $LatestWSUSupdate.LastSearchSuccessDate
-    $ComputerStat['WSUS Install Success'] = $LatestWSUSupdate.LastInstallationSuccessDate
-
     <#bookmark Fast cruise notes #>
     [string]$Notes = Show-VbForm -InputBox -Message 'Notes about this cruise:'
     $ComputerStat['Notes'] = $Notes
@@ -575,7 +595,6 @@ Phone
       [pscustomobject]$_
     } |
     Export-Csv -Path $FastCruiseReport -NoTypeInformation -Append
-
 
     Write-Output -InputObject 'The information recorded'
     $ComputerStat | Format-Table
@@ -593,45 +612,8 @@ function Show-AsciiMenu
 {
   <#
       .SYNOPSIS
-      Describe purpose of "Show-AsciiMenu" in 1-2 sentences.
-
-      .DESCRIPTION
-      Add a more complete description of what the function does.
-
-      .PARAMETER Title
-      Describe parameter -Title.
-
-      .PARAMETER MenuItems
-      Describe parameter -MenuItems.
-
-      .PARAMETER TitleColor
-      Describe parameter -TitleColor.
-
-      .PARAMETER LineColor
-      Describe parameter -LineColor.
-
-      .PARAMETER MenuItemColor
-      Describe parameter -MenuItemColor.
-
-      .EXAMPLE
-      Show-AsciiMenu -Title Value -MenuItems Value -TitleColor Value -LineColor Value -MenuItemColor Value
-      Describe what this call does
-
-      .NOTES
-      Place additional notes here.
-
-      .LINK
-      URLs to related sites
-      The first link is opened by Get-Help -Online Show-AsciiMenu
-
-      .INPUTS
-      List of input types that are accepted by this function.
-
-      .OUTPUTS
-      List of output types produced by this function.
+      Create a simple menu.
   #>
-
-
   [CmdletBinding()]
   param
   (
@@ -758,40 +740,40 @@ function Show-AsciiMenu
 }
 
 
-
-
-$Raspberry = 1
+$Blueberry = 1
 do
 {
   #Show-AsciiMenu -Title 'THIS IS THE TITLE' -MenuItems 'Exchange Server', 'Active Directory', 'Sytem Center Configuration Manager', 'Lync Server' -TitleColor Red  -MenuItemColor green
-  Show-AsciiMenu -Title 'EXIT STRATAGY' -MenuItems '(Re)Start-Fastcruise', 'Restart Computer', 'Quit to Prompt' #-Debug
+  Show-AsciiMenu -Title 'EXIT STRATAGY' -MenuItems 'Retart-Fastcruise', 'Manually Add Computer', 'Restart Computer', 'Quit to Prompt' #-Debug
 
-  if($Raspberry -ne 1){
-   $Raspberry = Read-Host -Prompt 'Select Number'
-   }
+  if($Blueberry -ne 1)
+  {
+    $Blueberry = Read-Host -Prompt 'Select Number'
+  }
 
-  switch($Raspberry)
+  switch($Blueberry)
   {
     1 
     {
       Clear-Host #Clears the console.  This shouldn't be needed once the script can be run directly from PS
       Write-Host -Object "`n`n"
       Start-FastCruise @FastCruiseSplat # Make sure you have updated and completed the "Splats" at the top of the script
-      $Raspberry = $null
+      $Blueberry = $null
     }
-    2 
+    2
     {
-      Restart-Computer -WhatIf
+      Start-FastCruise @ManualInputSplat
     }
     3 
     {
+      Restart-Computer -WhatIf
+    }
+    4 
+    {
       Break
-      <#$EmailMessage = Show-VbForm -Message 'Message to Helpdesk email account' -InputBox -TitleBar 'Send Email'
-          Send-eMail @SplatSendEmail -MessageBody $EmailMessage
-      #>
     }
 
   }
 }
-Until ($Raspberry)
+Until ($Blueberry)
 
