@@ -1,6 +1,6 @@
 ﻿#requires -Version 3.0 -Modules NetAdapter
 
-# Edit the Variables
+# Edit the Variables 
 $SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
 
 [Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
@@ -60,23 +60,36 @@ function Start-FastCruise
     Write-Verbose -Message 'Setup Report' 
     $YearMonth = Get-Date -Format yyyy-MMMM
     $FastCruiseFile = [String]$($FastCruiseFile.Replace('.',('_{0}.' -f $YearMonth)))
-    $FastCruiseReport = ('{0}\{1}' -f $FastCruiseReportPath, $FastCruiseFile)
-    #$FastCruiseReport = "C:\temp\Reports\FastCruise_Test.csv"
-    Write-Verbose -Message ('{0}' -f $FastCruiseReport) 
-
-    Write-Verbose -Message ('Testing the Report Path: {0}' -f $FastCruiseReportPath)
-    if(-not (Test-Path -Path $FastCruiseReportPath))
+    
+    try
     {
-      Write-Verbose -Message 'Test Failed.  Creating the Directory now.'
-      $null = New-Item -Path $FastCruiseReportPath -ItemType Directory -Force
-    } 
+      # Check if computer is connected to domain network
+      [void]::([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain())
+
+      if(-not (Test-Path -Path $FastCruiseReportPath))
+      {
+        Write-Verbose -Message 'Path not found.  Creating the Directory now.'
+        $null = New-Item -Path $FastCruiseReportPath -ItemType Directory -Force
+      } 
+    }
+    catch
+    {
+      Write-Warning  -Message ('Network path not available') 
+      Write-Output -InputObject ('{0}' -f $FastCruiseReport)
+      $FastCruiseReportPath = $env:TEMP
+      #$FastCruiseReport = ('{0}\{1}' -f $FastCruiseReportPath, $FastCruiseFile)
+    }
+
+    $FastCruiseReport = ('{0}\{1}' -f $FastCruiseReportPath, $FastCruiseFile)
+    Write-Verbose -Message ('Report Path: {0}' -f $FastCruiseReportPath)
+
     Write-Verbose -Message ('Testing the Report Path: {0}' -f $FastCruiseReport)
     if(-not (Test-Path -Path $FastCruiseReport))
     {
       Write-Verbose -Message 'Test Failed.  Creating the File now.'
       $null = New-Item -Path $FastCruiseReport -ItemType File -Force
     } 
-
+   
     # Variables
     $Phone = $null
 
@@ -100,7 +113,6 @@ function Start-FastCruise
           .SYNOPSIS
           Creates and displays the form used to make selections or inupt data.
       #>
-
 
       [cmdletbinding(DefaultParameterSetName = 'Message')]
       param(
@@ -362,20 +374,20 @@ function Start-FastCruise
     function Get-WorkstationInfo    
     {
       param(
-        [Parameter(Position = 0)]
-        [ValidateSet('Manufacturer','Model','Name','PrimaryOwnerName','Domain','serialnumber')] 
+        [Parameter(Mandatory=$true,Position = 0)]
+        [ValidateSet('Manufacturer','Model','Name','PrimaryOwnerName','Domain','serialnumber','PartOfDomain','Workgroup')] 
         [String]$Info
       )
       Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
 
-      if($Info -eq 'serialnumber'){
+      if($Info -eq 'serialnumber')
+      {
         (Get-WmiObject -Class win32_SystemEnclosure).serialnumber
       }
-      else{
+      else
+      {
         (Get-WmiObject -Class:Win32_ComputerSystem).$Info
-
       }
-
     } # End Workstation Information-Function
 
     <#bookmark Get MAC Address #>
@@ -416,6 +428,9 @@ function Start-FastCruise
       'Desk'               = 'N/A'
     }
 
+
+
+
   } #End BEGIN region
 
   Process
@@ -432,6 +447,23 @@ function Start-FastCruise
 
     Write-Verbose -Message 'Getting Model'
     $ComputerStat['Model'] = Get-WorkstationInfo -Info Model
+
+    $PartOfDomain = Get-WorkstationInfo -Info PartOfDomain
+
+    if($PartOfDomain -eq $true)
+    {
+      Write-Verbose -Message 'Getting Domain'
+      $ComputerStat['Domain'] = Get-WorkstationInfo -Info Domain
+    }
+    else
+    {
+      Write-Verbose -Message 'Getting Workgroup'
+      $ComputerStat['WorkGroup'] = Get-WorkstationInfo -Info Workgroup
+    
+      $FastCruiseReport = "$env:TEMP\FastCruise.csv"
+      Write-Warning  -Message ('This computer is not attached to the domain') 
+      Write-Output -InputObject ('{0}' -f $FastCruiseReport)
+    }
 
     <#bookmark Software Versions #>
     #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
@@ -725,11 +757,9 @@ function Show-AsciiMenu
 
 
 
-
+$Raspberry = 1
 do
 {
-  $Raspberry = $null
-
   #Show-AsciiMenu -Title 'THIS IS THE TITLE' -MenuItems 'Exchange Server', 'Active Directory', 'Sytem Center Configuration Manager', 'Lync Server' -TitleColor Red  -MenuItemColor green
   Show-AsciiMenu -Title 'EXIT STRATAGY' -MenuItems '(Re)Start-Fastcruise', 'Restart Computer', 'Quit to Prompt' #-Debug
   $Raspberry = Read-Host -Prompt 'Select Number'
@@ -741,6 +771,7 @@ do
       Clear-Host #Clears the console.  This shouldn't be needed once the script can be run directly from PS
       Write-Host -Object "`n`n"
       Start-FastCruise @FastCruiseSplat # Make sure you have updated and completed the "Splats" at the top of the script
+      $Raspberry = $null
     }
     2 
     {
