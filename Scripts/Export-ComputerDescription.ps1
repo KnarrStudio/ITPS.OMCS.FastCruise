@@ -28,8 +28,6 @@
       .OUTPUTS
       .CSV
   #>
-
-
   param
   (
     [Parameter(Mandatory, Position = 0)]
@@ -47,7 +45,6 @@
     [String]$OutputListFile 
   )
   $FullDescriptionList = @()
-  
   function Get-LastFour 
   {
     param(
@@ -57,24 +54,17 @@
     $MacInfo = (($MacAddress.Split('-',5))[4]).replace('-',':')
     $MacInfo
   }
-
   $FastCruiseData = (Import-Csv -Path $InputReportFile) | Sort-Object -Property Department, Building 
-  
   $FastCruiseData |
   ForEach-Object -Process {
     $MacFour = Get-LastFour -MacAddress $_.MacAddress
     $ADDescription = New-Object -TypeName System.Object
     $ADDescription | Add-Member -MemberType NoteProperty -Name 'ComputerName' -Value $_.ComputerName
     $ADDescription | Add-Member -MemberType NoteProperty -Name 'ComputerDescription' -Value ('KnarrStudio-{0}-{1}-{2}{3} [{4}]' -f $_.Department, $_.Building, $_.Room, $_.Desk, $MacFour) 
-
     $FullDescriptionList += $ADDescription
   }
-  
   #Finally, use Export-Csv to export the data to a csv file
   $FullDescriptionList | Export-Csv -NoTypeInformation -Path $OutputListFile
   #Return $OutputListFile
 }
-
 Export-ComputerDescription -InputReportFile 'C:\temp\Reports\FastCruise_2020-June.csv' -OutputListFile $env:HOMEDRIVE\temp\Reports\computerDescriptions.csv
-
-
