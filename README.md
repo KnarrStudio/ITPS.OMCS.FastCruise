@@ -29,7 +29,7 @@ We have to perform a manual operation check for all of the systems we have.  The
 1. Building             
 1. Room               
 1. Desk - Starting from "A" and the first desk on the left moving clockwise around the room.                   
-1. Phone - Must be in the 123-123-1234 format 
+1. Phone - Must be in the 607-555-1234 format 
 1. Notes - Any notes that you want to add to the spreadsheet for later      
 
 #### User Customizable
