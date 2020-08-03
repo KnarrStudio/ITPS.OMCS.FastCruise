@@ -399,31 +399,31 @@ function Start-FastCruise
       Switch ($CurrentDay){
         Monday 
         {
-          $CurrentWeek = (Get-Date).AddDays(0).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(0).ToString($dateFormat)
         }
         Tuesday 
         {
-          $CurrentWeek = (Get-Date).AddDays(-1).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(-1).ToString($dateFormat)
         }
         Wednesday 
         {
-          $CurrentWeek  = (Get-Date).AddDays(-2).ToString($dateFormat)  
+          $CurrentWeek  = (Get-Date).AddDays(-2).ToString($dateFormat)
         }
         Thursday 
         {
-          $CurrentWeek = (Get-Date).AddDays(-3).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(-3).ToString($dateFormat)
         }
         Friday 
         {
-          $CurrentWeek = (Get-Date).AddDays(-4).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(-4).ToString($dateFormat)
         }
         Saturday 
         {
-          $CurrentWeek = (Get-Date).AddDays(-5).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(-5).ToString($dateFormat)
         }
         Sunday 
         {
-          $CurrentWeek = (Get-Date).AddDays(-6).ToString($dateFormat)  
+          $CurrentWeek = (Get-Date).AddDays(-6).ToString($dateFormat)
         }
       }
       $FacilityIssueReport = [String]$($RoomStatusFile.Replace('.',('-WeekOf_{0}.' -f $CurrentWeek)))
