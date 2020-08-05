@@ -22,6 +22,7 @@ Information is captured through two means. Automatically based on settings on th
   1. MAC Address 
   1. Serial Number of Machine  
   1. Host Name  
+  1. Make & Model of computer
   1. WSUS Search Success  
   1. WSUS Install Success  
 
