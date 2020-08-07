@@ -1,6 +1,16 @@
 ﻿#requires -Version 3.0 -Modules NetAdapter
 # Edit the Variables 
-$SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
+
+if(-not (Test-Path -Path 'S:\')){
+Clear-Host
+Write-Warning "Yo. Mapping your S: Drive"
+Write-Host "Net Use S: \\Server\Share\" -ForegroundColor Cyan
+Net Use S: \\Server\Share\
+}
+
+
+
+$SoftwareChecks = @('Axway','Mozilla Firefox','McAfee Agent','Java') 
 [Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
 $jsonFilePath = '..\Configfiles\computerlocation.json'
 #Edit the splats to customize the script
@@ -110,7 +120,7 @@ function Start-FastCruise
       $PhysicalLocations = $null
     }
     <#bookmark Vb Form #>
-    function Show-VbForm    
+    function Script:Show-VbForm    
     {
       <#
           .SYNOPSIS
@@ -125,25 +135,24 @@ function Start-FastCruise
         [Parameter(Mandatory,Position = 1)]
         [string]$Message,
         [Parameter(Position = 2)]
-        [string]$TitleBar = 'Fast Cruise'
+        [string]$TitleBar = 'Fast Cruise',
+        [Parameter(Position = 3,ParameterSetName = 'Input')]
+        [string]$DefaultValue
       )
       Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
       Add-Type -AssemblyName Microsoft.VisualBasic
       switch($PSBoundParameters.Keys){
         'InputBox'
         {
-          $Response = [Microsoft.VisualBasic.Interaction]::InputBox($Message, $TitleBar)
+          $Response = [Microsoft.VisualBasic.Interaction]::InputBox($Message, $TitleBar, $DefaultValue)
         }
         'YesNoBox'
         {
-          $Response = [Microsoft.VisualBasic.Interaction]::MsgBox($Message, 'YesNo,SystemModal,MsgBoxSetForeground', $TitleBar)
+          $Response = [Microsoft.VisualBasic.Interaction]::MsgBox($Message, 'YesNo, SystemModal, MsgBoxSetForeground', $TitleBar)
         }
       }
-      if($Response -eq '')
-      {
-        Break
-      }
-      Return $Response
+      #Write-host $Response
+      $Response
     } # End VbForm-Function
     <#bookmark Application Test #>
     function Start-ApplicationTest    
@@ -200,11 +209,11 @@ function Start-FastCruise
       param
       (
         [Parameter(Mandatory, Position = 0)]
-        [String]$FastCruiseReport
+        [String]$LastCruiseStatus
       )
       Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
       Write-Verbose -Message 'Importing the Fast Cruise Report'
-      $CompImport = Import-Csv -Path $FastCruiseReport
+      $CompImport = Import-Csv -Path $LastCruiseStatus
       # Select last status of system.
       Write-Verbose -Message "Getting last status of workstation: $env:COMPUTERNAME"
       try
@@ -278,9 +287,9 @@ function Start-FastCruise
       else
       {
         Write-Verbose -Message 'Unable to find or use JSON File'
-        [string]$Script:LclDept = Show-VbForm -InputBox -Message 'Department: MCDO, PRO, CA, Other' -TitleBar 'Department'
-        [string]$Script:LclBuild = Show-VbForm -InputBox -Message 'Building: ELC44, AV34' -TitleBar 'Building'
-        [string]$Script:LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room'
+        [string]$Script:LclDept = Show-VbForm -InputBox -Message 'Department: MCDO, PRO, CA' -TitleBar 'Department' -DefaultValue 'Other'
+        [string]$Script:LclBuild = Show-VbForm -InputBox -Message 'Building: ELC44, AV34' -TitleBar 'Building' -DefaultValue 'ELC'
+        [string]$Script:LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room' -DefaultValue 1
         [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
       }
     } # End Location-Function
@@ -299,7 +308,8 @@ function Start-FastCruise
       Begin { 
         Write-Verbose -Message ('Enter Function: {0}' -f $PSCmdlet.MyInvocation.MyCommand.Name)
         $SoftwareOutput = @()
-        $InstalledSoftware = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*)
+        $InstalledSoftware = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*)#, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*)
+        #$InstalledSoftware = (Get-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*)
       }
       Process {
         Try 
@@ -439,16 +449,36 @@ function Start-FastCruise
 
 '@ -f $LatestStatus.Building, $LatestStatus.Room, $DblLine, (Get-Date))
       $FacilityIssuesHeader | Out-File -FilePath $FacilityIssueReport -Append
-      do
+
+
+  $DefaultInput = 'None Found'
+  $DoNotWrite = @(' ','Exit' )
+  do
+  {
+    Write-Host "Default: $DefaultInput"
+    Write-Host "Do not write: $DoNotWrite"
+  
+    if($RoomIssue -ne $DefaultInput)
+    {
+      $RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "EXIT" to exit' -TitleBar 'Facility Issue Report' -DefaultValue $DefaultInput
+      
+      if ($RoomIssue -notin $DoNotWrite)
       {
-        [String]$RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "." to exit' -TitleBar 'Facility Issue Report'
-        if(($RoomIssue -ne '.') -and ($RoomIssue -ne ''))
-        {
-          ('- {0}' -f $RoomIssue) | Out-File -FilePath $FacilityIssueReport -Append
-        }
+        ('- {0}' -f $RoomIssue) | Out-File -FilePath $FacilityIssueReport -Append
+        if($RoomIssue -match $DefaultInput){$DoNotWrite += $RoomIssue}
       }
-      While(($RoomIssue).Length -gt 4)
     }
+    else
+    {
+      $RoomIssue = 'Exit'
+    }
+    Write-Host "Do not write: $DoNotWrite"
+  }
+  While($RoomIssue -notin $DoNotWrite)
+
+
+
+    } <# END Facility Issues #>
     <#bookmark ComputerStat Hashtable #>
     Write-Verbose -Message 'Setting up the ComputerStat hash'
     $ComputerStat = [ordered]@{
@@ -498,15 +528,20 @@ function Start-FastCruise
       }
       <#bookmark Software Versions #>
       #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
-      #$SoftwareChecks = @(@('Adobe', 'Version'), @( 'Mozilla Firefox', 'Version'), @('McAfee Agent', 'Version')) #,@('VMware','Version'))
+      
       foreach($SoftwareItem in $SoftwareChecks)
       {
-        $ComputerStat["$SoftwareItem"] = Get-InstalledSoftware -SoftwareName $SoftwareItem[0] -SelectParameter DisplayVersion
+        
+        $ComputerStat["$SoftwareItem Version"] = Get-InstalledSoftware -SoftwareName $SoftwareItem -SelectParameter DisplayVersion
       }
-      Write-Verbose -Message 'Getting Last Status recorded'
-      $LatestStatus = (Get-LastComputerStatus -FastCruiseReport $LocalCruiseFile)#$FastCruiseReport) 
-      #Write-Output -InputObject 'Latest Status'
-      #$LatestStatus | Select-Object -Property Computername, Department, Building, Room, Desk
+      if($LocalCruiseFile.Length -gt 0)
+      {
+      Write-Verbose -Message 'Getting Last Status recorded locally'
+      $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $LocalCruiseFile)
+      }else
+      {
+      $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $FastCruiseReport) 
+      }
       <#bookmark Location Verification #>
       $ComputerLocation = (@'
 
@@ -530,14 +565,10 @@ Desk:
 
 Phone
 - {5}
+
           
 '@ -f $LatestStatus.ComputerName, $LatestStatus.Department, $LatestStatus.Building, $LatestStatus.Room, $LatestStatus.Desk, $LatestStatus.Phone, $LatestStatus.SerialNumber)
-      <#bookmark Facility Test #>
-      $FacilityTest = Show-VbForm -YesNoBox -Message 'Are there any issues with the Room?' -TitleBar 'Facility Issues' 
-      if($FacilityTest -eq 'Yes')
-      {
-        Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $LatestStatus
-      }
+
       <#bookmark Application Test #> 
       $FunctionTest = Show-VbForm -YesNoBox -Message 'Perform Applicaion Tests (MS Office and Adobe)?' 
       if($FunctionTest -eq 'Yes')
@@ -557,7 +588,7 @@ Phone
     if($ManualInput -eq $true)
     {
       $LocationVerification = 'No'
-      $ComputerStat['ComputerName'] = Show-VbForm -InputBox -Message 'ComputerName: (Assest Tag)' -TitleBar 'ComputerName'
+      $ComputerStat['ComputerName'] = Show-VbForm -InputBox -Message 'ComputerName: (Assest Tag)' -TitleBar 'ComputerName' -DefaultValue 'D1234567'
       $ComputerStat['SerialNumber'] = 'Manual Input'
       $TestResult = 'Manual Input'
       $ComputerStat['MS Office Test'] = $TestResult
@@ -574,6 +605,7 @@ Phone
     }
     else
     {
+      $ComputerStat['Department'] = $($LatestStatus.Department)
       $ComputerStat['Building'] = $($LatestStatus.Building)
       $ComputerStat['Room'] = $($LatestStatus.Room)
       $ComputerStat['Desk'] = $($LatestStatus.Desk)
@@ -585,7 +617,7 @@ Phone
       $RegexPhone = '^\d{3}-\d{3}-\d{4}'
       While($Phone -notmatch $RegexPhone)
       {
-        $Phone = Show-VbForm -InputBox -Message 'Nearest Phone Number (757-555-1234):'
+        $Phone = Show-VbForm -InputBox -Message 'Nearest Phone Number: ' -DefaultValue '757-555-1234'
         if($Phone -eq '')
         {
           Break
@@ -594,8 +626,19 @@ Phone
       $ComputerStat['Phone'] = $Phone
     }
     <#bookmark Fast cruise notes #>
-    [string]$Notes = Show-VbForm -InputBox -Message 'Notes about this cruise:'
+    [string]$Notes = Show-VbForm -InputBox -Message 'Notes about this cruise: ' -DefaultValue 'Related to the computer'
+    if($Notes -eq 'Related to the computer')
+    {
+    $Notes = ''
+    }
     $ComputerStat['Notes'] = $Notes
+
+    <#bookmark Facility Test #>
+    if('AB' -match $ComputerStat.Desk)
+     {
+       Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $ComputerStat
+     }
+     
   } #End PROCESS region
   END
   {    
@@ -603,18 +646,22 @@ Phone
     ForEach-Object -Process {
       [pscustomobject]$_
     } |
-    Export-Csv -Path $FastCruiseReport -NoTypeInformation -Append
+    Export-Csv -Path $FastCruiseReport -NoTypeInformation -Append -Force
+    
     $ComputerStat |
     ForEach-Object -Process {
       [pscustomobject]$_
     } |
     Export-Csv -Path $LocalCruiseFile -NoTypeInformation -Force
+
     Write-Output -InputObject 'The information recorded'
+    Write-Output -InputObject ('Local File: {0}' -f $LocalCruiseFile)
+
     $ComputerStat | Format-Table
     <#bookmark Fast cruising shipmates #>
     Write-Output -InputObject 'Fast Cruise shipmates'
     Import-Csv -Path $FastCruiseReport |
-    Select-Object -Last 4 -Property Date, Username, Building, Room, Phone |
+    Select-Object -Last 4 -Property Date, Username, Department, Building, Room, Phone |
     Format-Table 
   } #End END region
 }
@@ -757,11 +804,12 @@ do
     }
     3 
     {
-      Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $LatestStatus
+      Write-Host 'Not Operational' -ForegroundColor Cyan
+      #Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $LatestStatus
     }
     4 
     {
-      Restart-Computer -WhatIf
+      Restart-Computer
     }
     5
     {
@@ -769,4 +817,4 @@ do
     }
   }
 }
-Until ($Blueberry)
+Until ($Blueberry -eq 5)
