@@ -1,27 +1,28 @@
 ﻿#requires -Version 3.0 -Modules NetAdapter
 # Edit the Variables 
-
-if(-not (Test-Path -Path 'S:\')){
-Clear-Host
-Write-Warning "Yo. Mapping your S: Drive"
-Write-Host "Net Use S: \\Server\Share\" -ForegroundColor Cyan
-Net Use S: \\Server\Share\
+if(-not (Test-Path -Path 'C:\'))
+{
+  Clear-Host
+  Write-Warning -Message 'Yo. Mapping your S: Drive'
+  Write-Host -Object 'Net Use S: \\Server\Share\' -ForegroundColor Magenta
+  net.exe Use S: \\Server\Share\
 }
-
-
-
-$SoftwareChecks = @('Axway','Mozilla Firefox','McAfee Agent','Java') 
+$ReportFolderVariable = 'C:\temp\Reports'
+$FastCruiseFileVariable       = 'TestCruise.csv'
+$SoftwareChecks = @('Axway', 'Mozilla Firefox', 'McAfee Agent', 'Java') 
 [Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
 $jsonFilePath = '..\Configfiles\computerlocation.json'
 #Edit the splats to customize the script
 $FastCruiseSplat = @{
-  FastCruiseReportPath = '..\Reports'
-  FastCruiseFile       = 'TestCruise.csv'
-  Verbose              = $true
+  FastCruiseReportPath = $ReportFolderVariable
+  FastCruiseFile       = $FastCruiseFileVariable
+  LocalCruiseFile      = 'C:\temp\FastCruise\FastCruiseFile.csv'    
+  Verbose              = $false
 }
 $ManualInputSplat = @{
-  FastCruiseReportPath = '..\Reports'
-  FastCruiseFile       = 'TestCruise.csv'
+  FastCruiseReportPath = $ReportFolderVariable
+  FastCruiseFile       = $FastCruiseFileVariable
+  LocalCruiseFile      = 'C:\temp\FastCruise\FastCruiseFile.csv'    
   ManualInput          = $true
   Verbose              = $true
 }
@@ -37,7 +38,7 @@ $PowerPointApplicationTestSplat = @{
 }
 $FacilityIssuesSplat = @{
   RoomStatusFile = "$env:userprofile\Desktop\Facility_Issue_Report.txt"
-  Verbose        = $true
+  Verbose        = $false
 }
 <#$WordpadApplicationTestSplat = @{
     TestFile    = "$env:windir\DtcInstall.log"
@@ -62,7 +63,18 @@ function Start-FastCruise
             Throw 'Input file needs to be CSV'
           }
     })][String]$FastCruiseFile,
-    [Parameter(Mandatory = $false, Position = 1)]
+    [Parameter(Mandatory, Position = 2)]
+    [ValidateScript({
+          If($_ -match '.csv')
+          {
+            $true
+          }
+          Else
+          {
+            Throw 'Input file needs to be CSV'
+          }
+    })][String]$LocalCruiseFile,
+    [Parameter(Mandatory = $false, Position = 3)]
     [Switch]$ManualInput
   )
   Begin
@@ -73,7 +85,6 @@ function Start-FastCruise
     Write-Verbose -Message 'Setup Report' 
     $YearMonth = Get-Date -Format yyyy-MMMM
     $FastCruiseFile = [String]$($FastCruiseFile.Replace('.',('_{0}.' -f $YearMonth)))
-    $LocalCruiseFile = 'C:\temp\FastCruise\FastCruiseFile.csv'
     if(-not (Test-Path -Path $LocalCruiseFile))
     {
       Write-Verbose -Message 'Creating Local File.'
@@ -82,7 +93,7 @@ function Start-FastCruise
     try
     {
       # Check if computer is connected to domain network
-      [void]::([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain())
+      [void]::([DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain())
       Write-Output -InputObject ('Authentication Server: {0}' -f $env:LOGONSERVER)
       if(-not (Test-Path -Path $FastCruiseReportPath))
       {
@@ -390,7 +401,7 @@ function Start-FastCruise
       $MacInfo
     } # End MacAddress-Function
     <#bookmark Facility Issues #>
-    function Get-FacilityIssues
+    function Get-Script:FacilityIssues
     {
       <#
           .SYNOPSIS
@@ -449,35 +460,31 @@ function Start-FastCruise
 
 '@ -f $LatestStatus.Building, $LatestStatus.Room, $DblLine, (Get-Date))
       $FacilityIssuesHeader | Out-File -FilePath $FacilityIssueReport -Append
-
-
-  $DefaultInput = 'None Found'
-  $DoNotWrite = @(' ','Exit' )
-  do
-  {
-    Write-Host "Default: $DefaultInput"
-    Write-Host "Do not write: $DoNotWrite"
-  
-    if($RoomIssue -ne $DefaultInput)
-    {
-      $RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "EXIT" to exit' -TitleBar 'Facility Issue Report' -DefaultValue $DefaultInput
-      
-      if ($RoomIssue -notin $DoNotWrite)
+      $DefaultInput = 'None Found'
+      $DoNotWrite = @(' ', 'Exit' )
+      do
       {
-        ('- {0}' -f $RoomIssue) | Out-File -FilePath $FacilityIssueReport -Append
-        if($RoomIssue -match $DefaultInput){$DoNotWrite += $RoomIssue}
+        Write-Verbose  -Message ('Default: {0}' -f $DefaultInput)
+        Write-Verbose -Message ('Do not write: {0}' -f $DoNotWrite)
+        if($RoomIssue -ne $DefaultInput)
+        {
+          $RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "EXIT" to exit' -TitleBar 'Facility Issue Report' -DefaultValue $DefaultInput
+          if ($RoomIssue -notin $DoNotWrite)
+          {
+            ('- {0}' -f $RoomIssue) | Out-File -FilePath $FacilityIssueReport -Append
+            if($RoomIssue -match $DefaultInput)
+            {
+              $DoNotWrite += $RoomIssue
+            }
+          }
+        }
+        else
+        {
+          $RoomIssue = 'Exit'
+        }
+        Write-Verbose -Message ('Do not write: {0}' -f $DoNotWrite)
       }
-    }
-    else
-    {
-      $RoomIssue = 'Exit'
-    }
-    Write-Host "Do not write: $DoNotWrite"
-  }
-  While($RoomIssue -notin $DoNotWrite)
-
-
-
+      While($RoomIssue -notin $DoNotWrite)
     } <# END Facility Issues #>
     <#bookmark ComputerStat Hashtable #>
     Write-Verbose -Message 'Setting up the ComputerStat hash'
@@ -522,25 +529,24 @@ function Start-FastCruise
       {
         Write-Verbose -Message 'Getting Workgroup'
         $ComputerStat['WorkGroup'] = Get-WorkstationInfo -Info Workgroup
-        $FastCruiseReport = "$env:TEMP\FastCruise.csv"
+        $FastCruiseReport = $LocalCruiseFile
         Write-Warning  -Message ('This computer is not attached to the domain') 
-        Write-Output -InputObject ('{0}' -f $FastCruiseReport)
+        Write-Output -InputObject ('Local Fast Cruise File: {0}' -f $FastCruiseReport)
       }
       <#bookmark Software Versions #>
       #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
-      
       foreach($SoftwareItem in $SoftwareChecks)
       {
-        
         $ComputerStat["$SoftwareItem Version"] = Get-InstalledSoftware -SoftwareName $SoftwareItem -SelectParameter DisplayVersion
       }
       if($LocalCruiseFile.Length -gt 0)
       {
-      Write-Verbose -Message 'Getting Last Status recorded locally'
-      $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $LocalCruiseFile)
-      }else
+        Write-Verbose -Message 'Getting Last Status recorded locally'
+        $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $LocalCruiseFile)
+      }
+      else
       {
-      $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $FastCruiseReport) 
+        $Script:LatestStatus = (Get-LastComputerStatus -LastCruiseStatus $FastCruiseReport)
       }
       <#bookmark Location Verification #>
       $ComputerLocation = (@'
@@ -568,7 +574,6 @@ Phone
 
           
 '@ -f $LatestStatus.ComputerName, $LatestStatus.Department, $LatestStatus.Building, $LatestStatus.Room, $LatestStatus.Desk, $LatestStatus.Phone, $LatestStatus.SerialNumber)
-
       <#bookmark Application Test #> 
       $FunctionTest = Show-VbForm -YesNoBox -Message 'Perform Applicaion Tests (MS Office and Adobe)?' 
       if($FunctionTest -eq 'Yes')
@@ -629,16 +634,14 @@ Phone
     [string]$Notes = Show-VbForm -InputBox -Message 'Notes about this cruise: ' -DefaultValue 'Related to the computer'
     if($Notes -eq 'Related to the computer')
     {
-    $Notes = ''
+      $Notes = ''
     }
     $ComputerStat['Notes'] = $Notes
-
     <#bookmark Facility Test #>
     if('AB' -match $ComputerStat.Desk)
-     {
-       Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $ComputerStat
-     }
-     
+    {
+      Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $ComputerStat
+    }
   } #End PROCESS region
   END
   {    
@@ -647,16 +650,13 @@ Phone
       [pscustomobject]$_
     } |
     Export-Csv -Path $FastCruiseReport -NoTypeInformation -Append -Force
-    
     $ComputerStat |
     ForEach-Object -Process {
       [pscustomobject]$_
     } |
     Export-Csv -Path $LocalCruiseFile -NoTypeInformation -Force
-
     Write-Output -InputObject 'The information recorded'
-    Write-Output -InputObject ('Local File: {0}' -f $LocalCruiseFile)
-
+    Write-Output -InputObject ('Local Fast Cruise File: {0}' -f $LocalCruiseFile)
     $ComputerStat | Format-Table
     <#bookmark Fast cruising shipmates #>
     Write-Output -InputObject 'Fast Cruise shipmates'
@@ -804,12 +804,11 @@ do
     }
     3 
     {
-      Write-Host 'Not Operational' -ForegroundColor Cyan
-      #Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $LatestStatus
+      Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $LatestStatus
     }
     4 
     {
-      Restart-Computer
+      Restart-Computer -WhatIf
     }
     5
     {
