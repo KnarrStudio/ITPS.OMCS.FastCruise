@@ -286,8 +286,8 @@ function Start-FastCruise
       else
       {
         Write-Verbose -Message 'Unable to find or use JSON File'
-        [string]$Script:LclDept = Show-VbForm -InputBox -Message 'Department: MCDO, PRO, CA' -TitleBar 'Department' -DefaultValue 'Other'
-        [string]$Script:LclBuild = Show-VbForm -InputBox -Message 'Building: ELC44, AV34' -TitleBar 'Building' -DefaultValue 'ELC'
+        [string]$Script:LclDept = Show-VbForm -InputBox -Message 'Department: Produce, Bakery, Dairy' -TitleBar 'Department' -DefaultValue 'Other'
+        [string]$Script:LclBuild = Show-VbForm -InputBox -Message 'Building: Office-4, Bay-34' -TitleBar 'Building' -DefaultValue 'Office'
         [string]$Script:LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room' -DefaultValue 1
         [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
       }
