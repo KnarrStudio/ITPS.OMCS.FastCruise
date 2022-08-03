@@ -13,7 +13,7 @@ $SoftwareChecks = @('Axway', 'Mozilla Firefox', 'McAfee Agent', 'Java')
 
 [Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
 
-$jsonFilePath = 'S:\Information-Systems\Scripts\FastCruise\computerlocation.json'
+$jsonFilePath = "S:\ComputerLocation.json"
 
 #Edit the splats to customize the script
 $FastCruiseSplat = @{
@@ -85,14 +85,14 @@ function Start-FastCruise
       Write-Output -InputObject ('Authentication Server: {0}' -f $env:LOGONSERVER)
       if(-not (Test-Path -Path $FastCruiseReportPath))
       {
-        Write-Verbose -Message 'Path not found.  Creating the Directory now.'
+        Write-Verbose -Message 'Path not found.  Creating the Directory now.'
         $null = New-Item -Path $FastCruiseReportPath -ItemType Directory -Force
       }
     }
     catch
     {
       Write-Verbose -Message ('Local Workstation: {0}' -f $ComputerName)
-      Write-Warning  -Message ('Network path not available') 
+      Write-Warning  -Message ('Network path not available') 
       #Write-Output -InputObject ('{0}' -f $FastCruiseReport)
       $FastCruiseReportPath = $env:TEMP
       #$FastCruiseReport = ('{0}\{1}' -f $FastCruiseReportPath, $FastCruiseFile)
@@ -102,7 +102,7 @@ function Start-FastCruise
     Write-Verbose -Message ('Testing the Report Path: {0}' -f $FastCruiseReport)
     if(-not (Test-Path -Path $FastCruiseReport))
     {
-      Write-Verbose -Message 'Test Failed.  Creating the File now.'
+      Write-Verbose -Message 'Test Failed.  Creating the File now.'
       $null = New-Item -Path $FastCruiseReport -ItemType File -Force
     } 
     # Variables
@@ -119,7 +119,7 @@ function Start-FastCruise
       $PhysicalLocations = $null
     }
     <#bookmark Vb Form #>
-    function Script:Show-VbForm    
+    function Script:Show-VbForm    
     {
       <#
           .SYNOPSIS
@@ -154,7 +154,7 @@ function Start-FastCruise
       $Response
     } # End VbForm-Function
     <#bookmark Application Test #>
-    function Start-ApplicationTest    
+    function Start-ApplicationTest    
     {
       <#
           .SYNOPSIS
@@ -186,7 +186,7 @@ function Start-FastCruise
         Write-Verbose -Message 'TestResult: Failed'
         $TestResult = $DescriptionLists.FunctionResult[1]
         # get error record
-        $ErrorMessage  = $_.exception.message
+        $ErrorMessage  = $_.exception.message
         Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
       }
       if($WaitTest)
@@ -199,7 +199,7 @@ function Start-FastCruise
       Return $TestResult
     } # End ApplicationTest-Function
     <#bookmark Get Computer status last recorded #>
-    function Get-LastComputerStatus    
+    function Get-LastComputerStatus    
     {
       <#
           .SYNOPSIS
@@ -231,13 +231,13 @@ function Start-FastCruise
       Catch
       {
         # get error record
-        $ErrorMessage  = $_.exception.message
+        $ErrorMessage  = $_.exception.message
         Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
       }
       Return $LatestStatus
     } # End ComputerStatus-Function
     <#bookmark Computer Location #>
-    function Get-ComputerLocation     
+    function Get-ComputerLocation     
     {
       <#
           .SYNOPSIS
@@ -293,7 +293,7 @@ function Start-FastCruise
       }
     } # End Location-Function
     <#bookmark Get Installed Software #>
-    Function Get-InstalledSoftware    
+    Function Get-InstalledSoftware    
     {
       [cmdletbinding(SupportsPaging)]
       Param(
@@ -331,7 +331,7 @@ function Start-FastCruise
         Catch 
         {
           # get error record
-          $ErrorMessage  = $_.exception.message
+          $ErrorMessage  = $_.exception.message
           Write-Verbose -Message ('Error Message: {0}' -f $ErrorMessage)
         }
       }
@@ -353,7 +353,7 @@ function Start-FastCruise
       }
     } # End InstalledSoftware-Function
     <#bookmark Workstation Information #>
-    function Get-WorkstationInfo    
+    function Get-WorkstationInfo    
     {
       param(
         [Parameter(Mandatory = $true,Position = 0)]
@@ -371,7 +371,7 @@ function Start-FastCruise
       }
     } # End Workstation Information-Function
     <#bookmark Get MAC Address #>
-    function Get-MacAddress     
+    function Get-MacAddress     
     {
       param(
         [Parameter(Position = 0)]
@@ -393,7 +393,7 @@ function Start-FastCruise
     {
       <#
           .SYNOPSIS
-          Get-RoomStatus allows a place to put notes about the room.  
+          Get-RoomStatus allows a place to put notes about the room.  
           Such as bad A/C or lights not working
       #>
       param
@@ -417,7 +417,7 @@ function Start-FastCruise
         }
         Wednesday 
         {
-          $CurrentWeek  = (Get-Date).AddDays(-2).ToString($dateFormat)
+          $CurrentWeek  = (Get-Date).AddDays(-2).ToString($dateFormat)
         }
         Thursday 
         {
@@ -445,7 +445,7 @@ function Start-FastCruise
       }
       $FacilityIssuesHeader = (@'
 {2}
-{3} - Building: {0}  Room: {1} 
+{3} - Building: {0}  Room: {1} 
 
 '@ -f $LatestStatus.Building, $LatestStatus.Room, $DblLine, (Get-Date))
       $FacilityIssuesHeader | Out-File -FilePath $FacilityIssueReport -Append
@@ -457,11 +457,11 @@ function Start-FastCruise
       {
         # Write-Host ('Default: {0}' -f $DefaultInput)
         # Write-Host ('Do not write: {0}' -f $DoNotWrite)
-  
+  
         if($RoomIssue -ne $DefaultInput)
         {
-          $RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "EXIT" to exit' -TitleBar 'Facility Issue Report' -DefaultValue $DefaultInput
-      
+          $RoomIssue = Show-VbForm -InputBox -Message 'Enter any issues with the room.  These will be sent to the facilities department.  Type "EXIT" to exit' -TitleBar 'Facility Issue Report' -DefaultValue $DefaultInput
+      
           if ($RoomIssue -notin $DoNotWrite)
           {
             ('- {0}' -f $RoomIssue) | Out-File -FilePath $FacilityIssueReport -Append
@@ -523,12 +523,12 @@ function Start-FastCruise
         Write-Verbose -Message 'Getting Workgroup'
         $ComputerStat['WorkGroup'] = Get-WorkstationInfo -Info Workgroup
         $FastCruiseReport = "$env:TEMP\FastCruise.csv"
-        Write-Warning  -Message ('This computer is not attached to the domain') 
+        Write-Warning  -Message ('This computer is not attached to the domain') 
         Write-Output -InputObject ('{0}' -f $FastCruiseReport)
       }
       <#bookmark Software Versions #>
-      #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
-      
+      #$ComputerStat['VmWare Version']  = Get-InstalledSoftware -SoftwareName 'Vmware' -SelectParameter DisplayVersion
+      
       foreach($SoftwareItem in $SoftwareChecks)
       {
         $ComputerStat["$SoftwareItem Version"] = Get-InstalledSoftware -SoftwareName $SoftwareItem -SelectParameter DisplayVersion
@@ -566,7 +566,7 @@ Desk:
 Phone
 - {5}
 
-          
+          
 '@ -f $LatestStatus.ComputerName, $LatestStatus.Department, $LatestStatus.Building, $LatestStatus.Room, $LatestStatus.Desk, $LatestStatus.Phone, $LatestStatus.SerialNumber)
 
       <#bookmark Application Test #> 
@@ -638,16 +638,16 @@ Phone
     {
       Get-FacilityIssues @FacilityIssuesSplat -LatestStatus $ComputerStat
     }
-     
+     
   } #End PROCESS region
   END
-  {    
+  {    
     $ComputerStat |
     ForEach-Object -Process {
       [pscustomobject]$_
     } |
     Export-Csv -Path $FastCruiseReport -NoTypeInformation -Append -Force
-    
+    
     $ComputerStat |
     ForEach-Object -Process {
       [pscustomobject]$_
@@ -667,7 +667,7 @@ Phone
 }
 # This is what calls the script to run
 Start-FastCruise @FastCruiseSplat # Make sure you have updated and completed the "Splats" at the top of the script
-### Everything below this line is only to provide the menu that you see after running the script.  Everything below this line can be deleted without impacting the functionality of the script.
+### Everything below this line is only to provide the menu that you see after running the script.  Everything below this line can be deleted without impacting the functionality of the script.
 <#bookmark ASCII Menu #>
 function Show-AsciiMenu 
 {
@@ -738,7 +738,7 @@ function Show-AsciiMenu
         $number = $i++
         $ItemPaddingCount = $TotalLineWidth - $menuItem.Length - 6 #This number is needed to offset the Tab, space and 'dot'
         $ItemPadding = Get-Padding -Multiplier $ItemPaddingCount
-        Write-Host -Object $VertLine  -NoNewline -ForegroundColor $LineColor
+        Write-Host -Object $VertLine  -NoNewline -ForegroundColor $LineColor
         Write-Host -Object ('{0}{1}. {2}{3}' -f $Tab, $number, $menuItem, $ItemPadding) -NoNewline -ForegroundColor $LineColor
         Write-Host -Object $VertLine -ForegroundColor $LineColor
       }
@@ -749,7 +749,7 @@ function Show-AsciiMenu
     $TitleCount = $Title.Length
     $LongestMenuItemCount = ($MenuItems | Measure-Object -Maximum -Property Length).Maximum
     Write-Debug -Message ('LongestMenuItemCount = {0}' -f $LongestMenuItemCount)
-    if  ($TitleCount -gt $LongestMenuItemCount)
+    if  ($TitleCount -gt $LongestMenuItemCount)
     {
       $ItemWidthCount = $TitleCount
     }
@@ -769,7 +769,7 @@ function Show-AsciiMenu
     $TotalLineWidth = $ItemWidth + 10
     Write-Debug -Message ('Total Line Width = {0}' -f $TotalLineWidth)
     $TotalTitlePadding = $TotalLineWidth - $TitleCount
-    Write-Debug -Message ('Total Title Padding  = {0}' -f $TotalTitlePadding)
+    Write-Debug -Message ('Total Title Padding  = {0}' -f $TotalTitlePadding)
     $TitlePaddingCount = [math]::Floor($TotalTitlePadding / 2)
     Write-Debug -Message ('Title Padding Count = {0}' -f $TitlePaddingCount)
     $HorizontalLine = '═'*$TotalLineWidth
@@ -786,14 +786,14 @@ function Show-AsciiMenu
 }
 do
 {
-  #Show-AsciiMenu -Title 'THIS IS THE TITLE' -MenuItems 'Exchange Server', 'Active Directory', 'Sytem Center Configuration Manager', 'Lync Server' -TitleColor Red  -MenuItemColor green
+  #Show-AsciiMenu -Title 'THIS IS THE TITLE' -MenuItems 'Exchange Server', 'Active Directory', 'Sytem Center Configuration Manager', 'Lync Server' -TitleColor Red  -MenuItemColor green
   Show-AsciiMenu -Title 'EXIT STRATAGY' -MenuItems 'Retart-Fastcruise', 'Manually Add Computer', 'Record a Facility Issue', 'Restart Computer', 'Quit to Prompt' #-Debug
   $Blueberry = Read-Host -Prompt 'Select Number'
   switch($Blueberry)
   {
     1 
     {
-      Clear-Host #Clears the console.  This shouldn't be needed once the script can be run directly from PS
+      Clear-Host #Clears the console.  This shouldn't be needed once the script can be run directly from PS
       Write-Host -Object "`n`n"
       Start-FastCruise @FastCruiseSplat # Make sure you have updated and completed the "Splats" at the top of the script
       $Blueberry = $null
@@ -818,4 +818,3 @@ do
   }
 }
 Until ($Blueberry -eq 5)
-
