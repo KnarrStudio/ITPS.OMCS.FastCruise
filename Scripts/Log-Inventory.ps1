@@ -1,6 +1,6 @@
 ﻿#requires -Version 3.0 -Modules NetAdapter
 
-if(-not (Test-Path -Path 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise'))
+if(-not (Test-Path -Path 'S:\FastCruise'))
 {
   Clear-Host
   Write-Warning -Message 'Yo. Mapping your S: Drive'
@@ -12,25 +12,25 @@ if(-not (Test-Path -Path 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise'))
 # Desk Identifiers
 [Object[]]$Script:Desk = @('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q')
 
-$jsonFilePath = 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise\Scripts\computerlocation.json'
+$jsonFilePath = "S:\ComputerLocation.json"
 
 #Edit the splats to customize the script
-$InventorySplat = @{
-  InventoryReportPath = 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise\Reports'
-  InventoryFile       = 'Inventory.csv'
-  Verbose             = $true
+$FastCruiseSplat = @{
+  FastCruiseReportPath = 'S:\FastCruise'
+  FastCruiseFile       = 'FastCruise.csv'
+  Verbose              = $true
 }
 
 $ManualInputSplat = @{
-  InventoryReportPath = 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise\Reports'
-  InventoryFile       = 'Inventory.csv'
-  ManualInput         = $true
-  Verbose             = $true
+  FastCruiseReportPath = 'S:\FastCruise'
+  FastCruiseFile       = 'FastCruise.csv'
+  ManualInput          = $true
+  Verbose              = $true
 }
 
 
 $FacilityIssuesSplat = @{
-  RoomStatusFile = 'D:\GitHub\KnarrStudio\ITPS.OMCS.FastCruise\Reports\Facility_Issue_Report.txt'
+  RoomStatusFile = 'S:\FC-Facility_Issue\Facility_Issue_Report.txt'
   Verbose        = $true
 }
 
@@ -250,7 +250,6 @@ function Get-Inventory
     } # End VbForm-Function
 
     <#bookmark Application Test #>
-    # End ApplicationTest-Function
 
     <#bookmark Get Computer status last recorded #>
     function Get-LastComputerStatus    
@@ -536,8 +535,6 @@ Phone
       $ComputerStat['ComputerName'] = Show-VbForm -InputBox -Message 'ComputerName: (Assest Tag)' -TitleBar 'ComputerName' -DefaultValue 'D1234567'
       $ComputerStat['SerialNumber'] = 'Manual Input'
       $TestResult = 'Manual Input'
-      #$ComputerStat['MS Office Test'] = $TestResult
-      #$ComputerStat['Adobe Test'] = $TestResult
     }
     if($LocationVerification -eq 'No')
     {
