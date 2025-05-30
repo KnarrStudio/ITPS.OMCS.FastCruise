@@ -1,0 +1,25 @@
+{
+  "Department": {
+    "Produce": {
+      "Building": {
+        "Office-4": {
+          "Room": "101"
+        }
+      }
+    },
+    "Bakery": {
+      "Building": {
+        "Bay-34": {
+          "Room": "202"
+        }
+      }
+    },
+    "Dairy": {
+      "Building": {
+        "Warehouse": {
+          "Room": "303"
+        }
+      }
+    }
+  }
+}
