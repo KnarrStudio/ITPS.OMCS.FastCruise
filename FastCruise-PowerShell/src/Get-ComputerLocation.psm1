@@ -14,23 +14,34 @@ function Get-ComputerLocation
 
         # Direct property access from JSON object
         $deptNames = $location.Department.PSObject.Properties.Name
-        [string]$Script:LclDept = $deptNames | Out-GridView -Title 'Department' -OutputMode Single
+        $LclDept = $deptNames | Out-GridView -Title 'Department' -OutputMode Single
 
         $buildNames = $location.Department.$LclDept.Building.PSObject.Properties.Name
-        [string]$Script:LclBuild = $buildNames | Out-GridView -Title 'Building' -OutputMode Single
+        $LclBuild = $buildNames | Out-GridView -Title 'Building' -OutputMode Single
 
         $roomList = $location.Department.$LclDept.Building.$LclBuild.Room
-        [string]$Script:LclRm = $roomList | Out-GridView -Title 'Room' -OutputMode Single
+        $LclRm = $roomList | Out-GridView -Title 'Room' -OutputMode Single
 
-        [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
+        # If $Desk is not defined in this scope, define a default list
+        if (-not $Desk) { $Desk = @('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q') }
+        $LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
     }
     else
     {
         Write-Verbose -Message 'Unable to find or use JSON File'
-        [string]$Script:LclDept = Show-VbForm -InputBox -Message 'Department: Produce, Bakery, Dairy' -TitleBar 'Department' -DefaultValue 'Other'
-        [string]$Script:LclBuild = Show-VbForm -InputBox -Message 'Building: Office-4, Bay-34' -TitleBar 'Building' -DefaultValue 'Office'
-        [string]$Script:LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room' -DefaultValue 1
-        [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
+        $LclDept = Show-VbForm -InputBox -Message 'Department: Produce, Bakery, Dairy' -TitleBar 'Department' -DefaultValue 'Other'
+        $LclBuild = Show-VbForm -InputBox -Message 'Building: Office-4, Bay-34' -TitleBar 'Building' -DefaultValue 'Office'
+        $LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room' -DefaultValue 1
+        if (-not $Desk) { $Desk = @('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q') }
+        $LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
+    }
+
+    # Return the collected data as a PSCustomObject
+    [PSCustomObject]@{
+        Department = $LclDept
+        Building   = $LclBuild
+        Room       = $LclRm
+        Desk       = $LclDesk
     }
 }
 

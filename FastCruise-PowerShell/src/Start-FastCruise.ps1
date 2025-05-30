@@ -51,7 +51,7 @@ function Start-FastCruise {
 }
 
     $ExportPath = Join-Path $FastCruiseReportPath $FastCruiseFile
-    $ComputerStat #| Export-Csv -Path $ExportPath -NoTypeInformation -Append -Force
+    $ComputerStat | Export-Csv -Path $ExportPath -NoTypeInformation -Append -Force
 }
 
 # Call the main function
