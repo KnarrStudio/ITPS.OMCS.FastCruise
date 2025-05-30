@@ -53,3 +53,5 @@ function Get-InstalledSoftware
         }
     }
 }
+
+Export-ModuleMember -Function Get-InstalledSoftware  

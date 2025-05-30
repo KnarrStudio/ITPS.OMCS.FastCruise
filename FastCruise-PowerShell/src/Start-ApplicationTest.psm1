@@ -30,3 +30,5 @@ function Start-ApplicationTest
         return $DescriptionLists.FunctionResult[1]
     }
 }
+
+Export-ModuleMember -Function Start-ApplicationTest   

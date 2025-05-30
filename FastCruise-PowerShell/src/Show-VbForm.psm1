@@ -26,3 +26,5 @@ function Show-VbForm
   }
   $Response
 }
+
+Export-ModuleMember -Function Show-VbForm

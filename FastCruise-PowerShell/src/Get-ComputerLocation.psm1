@@ -25,3 +25,5 @@ function Get-ComputerLocation
         [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
     }
 }
+
+Export-ModuleMember -Function Get-ComputerLocation  

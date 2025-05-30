@@ -11,3 +11,5 @@ function Get-MacAddress {
     }
     $MacInfo
 }
+
+Export-ModuleMember -Function Get-MacAddress

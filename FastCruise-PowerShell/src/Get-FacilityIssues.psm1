@@ -63,3 +63,4 @@ function Get-FacilityIssues {
         }
     } while ($RoomIssue -notin $DoNotWrite)
 }
+Export-ModuleMember -Function Get-FacilityIssues

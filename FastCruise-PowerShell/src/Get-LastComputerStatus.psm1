@@ -29,3 +29,5 @@ function Get-LastComputerStatus
     }
     Return $LatestStatus
 }
+
+Export-ModuleMember -Function Get-LastComputerStatus    

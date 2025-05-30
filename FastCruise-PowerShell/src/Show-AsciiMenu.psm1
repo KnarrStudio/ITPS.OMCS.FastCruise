@@ -102,3 +102,5 @@ function Show-AsciiMenu
   End
   {}
 }
+
+Export-ModuleMember -Function Show-AsciiMenu 

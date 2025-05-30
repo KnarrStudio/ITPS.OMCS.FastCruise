@@ -41,22 +41,17 @@ function Start-FastCruise {
     }
 
     # Call functions to gather information and perform operations
-    $ComputerStat = @{}
-    $ComputerStat['ComputerName'] = Get-WorkstationInfo -Info 'Name'
-    $ComputerStat['SerialNumber'] = Get-WorkstationInfo -Info 'serialnumber'
-    $ComputerStat['MacAddress'] = Get-MacAddress
-    $ComputerStat['InstalledSoftware'] = Get-InstalledSoftware -SoftwareName @('Axway', 'Mozilla Firefox', 'McAfee Agent', 'Java')
+    $ComputerStat = [PSCustomObject]@{
+    ComputerName      = Get-WorkstationInfo -Info 'Name'
+    SerialNumber      = Get-WorkstationInfo -Info 'serialnumber'
+    MacAddress        = Get-MacAddress
+    InstalledSoftware = Get-InstalledSoftware -SoftwareName @('Axway', 'Mozilla Firefox', 'McAfee Agent', 'Java')
+    ManualInput       = [bool]$ManualInput
+    Location          = Get-ComputerLocation -jsonFilePath $jsonFilePath
+}
 
-    # Get computer location
-    Get-ComputerLocation -jsonFilePath $jsonFilePath
-
-    # Handle manual input if required
-    if ($ManualInput) {
-        $ComputerStat['ManualInput'] = $true
-    }
-
-    # Export the results to CSV
-    $ComputerStat | Export-Csv -Path $FastCruiseReportPath\$FastCruiseFile -NoTypeInformation -Append -Force
+    $ExportPath = Join-Path $FastCruiseReportPath $FastCruiseFile
+    $ComputerStat | Export-Csv -Path $ExportPath -NoTypeInformation -Append -Force
 }
 
 # Call the main function

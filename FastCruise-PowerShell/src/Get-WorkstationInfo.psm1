@@ -11,3 +11,5 @@ function Get-WorkstationInfo
         (Get-CimInstance -ClassName Win32_ComputerSystem).$Info
     }
 }
+
+Export-ModuleMember -Function Get-WorkstationInfo
