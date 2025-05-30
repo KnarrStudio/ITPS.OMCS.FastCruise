@@ -17,7 +17,7 @@ Import-Module ./Show-AsciiMenu.ps1 -Verbose
 # Define the main function
 function Start-FastCruise {
     param (
-        [string]$FastCruiseReportPath = 'S:\FastCruise',
+        [string]$FastCruiseReportPath = 'S:\',
         [string]$FastCruiseFile = 'FastCruise.csv',
         [switch]$ManualInput = $false
     )

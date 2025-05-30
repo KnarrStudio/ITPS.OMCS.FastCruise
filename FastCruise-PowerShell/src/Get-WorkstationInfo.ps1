@@ -6,8 +6,8 @@ function Get-WorkstationInfo
         [String]$Info
     )
     if ($Info -eq 'serialnumber') {
-        (Get-WmiObject -Class win32_SystemEnclosure).serialnumber
+        (Get-CimInstance -ClassName win32_SystemEnclosure).serialnumber
     } else {
-        (Get-WmiObject -Class:Win32_ComputerSystem).$Info
+        (Get-CimInstance -ClassName Win32_ComputerSystem).$Info
     }
 }
