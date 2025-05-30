@@ -4,15 +4,15 @@
 # It initializes the script and calls the necessary functions to perform the FastCruise operations.
 
 # Import necessary modules and scripts
-Import-Module ./Get-InstalledSoftware.ps1
-Import-Module ./Get-WorkstationInfo.ps1
-Import-Module ./Get-MacAddress.ps1
-Import-Module ./Get-ComputerLocation.ps1
-Import-Module ./Get-LastComputerStatus.ps1
-Import-Module ./Get-FacilityIssues.ps1
-Import-Module ./Start-ApplicationTest.ps1
-Import-Module ./Show-VbForm.ps1
-Import-Module ./Show-AsciiMenu.ps1
+Import-Module ./Get-InstalledSoftware.ps1 -Verbose
+Import-Module ./Get-WorkstationInfo.ps1 -Verbose
+Import-Module ./Get-MacAddress.ps1 -Verbose
+Import-Module ./Get-ComputerLocation.ps1 -Verbose
+Import-Module ./Get-LastComputerStatus.ps1 -Verbose
+Import-Module ./Get-FacilityIssues.ps1 -Verbose
+Import-Module ./Start-ApplicationTest.ps1 -Verbose
+Import-Module ./Show-VbForm.ps1 -Verbose
+Import-Module ./Show-AsciiMenu.ps1 -Verbose
 
 # Define the main function
 function Start-FastCruise {
