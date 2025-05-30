@@ -7,13 +7,21 @@ function Get-ComputerLocation
         [String]$jsonFilePath
     )
 
-    if(Test-Path -Path $jsonFilePath -ErrorAction SilentlyContinue)
+    if (Test-Path -Path $jsonFilePath -ErrorAction SilentlyContinue)
     {
         Write-Verbose -Message 'Using JSON File'
-        $location = Convert-JSONToHash -root $(Get-Content -Path $jsonFilePath -ErrorAction SilentlyContinue | ConvertFrom-Json)
-        [string]$Script:LclDept = $location.Department.keys | Out-GridView -Title 'Department' -OutputMode Single
-        [string]$Script:LclBuild = $location.Department[$LclDept].Building.Keys | Out-GridView -Title 'Building' -OutputMode Single
-        [string]$Script:LclRm = $location.Department[$LclDept].Building[$LclBuild].Room | Out-GridView -Title 'Room' -OutputMode Single
+        $location = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
+
+        # Direct property access from JSON object
+        $deptNames = $location.Department.PSObject.Properties.Name
+        [string]$Script:LclDept = $deptNames | Out-GridView -Title 'Department' -OutputMode Single
+
+        $buildNames = $location.Department.$LclDept.Building.PSObject.Properties.Name
+        [string]$Script:LclBuild = $buildNames | Out-GridView -Title 'Building' -OutputMode Single
+
+        $roomList = $location.Department.$LclDept.Building.$LclBuild.Room
+        [string]$Script:LclRm = $roomList | Out-GridView -Title 'Room' -OutputMode Single
+
         [string]$Script:LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
     }
     else
@@ -26,4 +34,4 @@ function Get-ComputerLocation
     }
 }
 
-Export-ModuleMember -Function Get-ComputerLocation  
+Export-ModuleMember -Function Get-ComputerLocation

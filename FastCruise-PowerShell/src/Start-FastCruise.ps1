@@ -4,15 +4,15 @@
 # It initializes the script and calls the necessary functions to perform the FastCruise operations.
 
 # Import necessary modules and scripts
-Import-Module ./Get-InstalledSoftware.ps1 -Verbose
-Import-Module ./Get-WorkstationInfo.ps1 -Verbose
-Import-Module ./Get-MacAddress.ps1 -Verbose
-Import-Module ./Get-ComputerLocation.ps1 -Verbose
-Import-Module ./Get-LastComputerStatus.ps1 -Verbose
-Import-Module ./Get-FacilityIssues.ps1 -Verbose
-Import-Module ./Start-ApplicationTest.ps1 -Verbose
-Import-Module ./Show-VbForm.ps1 -Verbose
-Import-Module ./Show-AsciiMenu.ps1 -Verbose
+Import-Module ./Get-InstalledSoftware.psm1 -Verbose
+Import-Module ./Get-WorkstationInfo.psm1 -Verbose
+Import-Module ./Get-MacAddress.psm1 -Verbose
+Import-Module ./Get-ComputerLocation.psm1 -Verbose
+Import-Module ./Get-LastComputerStatus.psm1 -Verbose
+Import-Module ./Get-FacilityIssues.psm1 -Verbose
+Import-Module ./Start-ApplicationTest.psm1 -Verbose
+Import-Module ./Show-VbForm.psm1 -Verbose
+Import-Module ./Show-AsciiMenu.psm1 -Verbose
 
 # Define the main function
 function Start-FastCruise {
@@ -31,7 +31,7 @@ function Start-FastCruise {
     }
 
     # Initialize variables
-    $jsonFilePath = "S:\ComputerLocation.json"
+    $jsonFilePath = "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json"
     $LocalCruiseFile = 'C:\temp\FastCruise\FastCruiseFile.csv'
 
     # Create local file if it doesn't exist
@@ -45,13 +45,13 @@ function Start-FastCruise {
     ComputerName      = Get-WorkstationInfo -Info 'Name'
     SerialNumber      = Get-WorkstationInfo -Info 'serialnumber'
     MacAddress        = Get-MacAddress
-    InstalledSoftware = Get-InstalledSoftware -SoftwareName @('Axway', 'Mozilla Firefox', 'McAfee Agent', 'Java')
+    InstalledSoftware = Get-InstalledSoftware -SoftwareName 'InstallRoot', 'Mozilla Firefox', 'KeePass', 'NetWorx'
     ManualInput       = [bool]$ManualInput
     Location          = Get-ComputerLocation -jsonFilePath $jsonFilePath
 }
 
     $ExportPath = Join-Path $FastCruiseReportPath $FastCruiseFile
-    $ComputerStat | Export-Csv -Path $ExportPath -NoTypeInformation -Append -Force
+    $ComputerStat #| Export-Csv -Path $ExportPath -NoTypeInformation -Append -Force
 }
 
 # Call the main function
