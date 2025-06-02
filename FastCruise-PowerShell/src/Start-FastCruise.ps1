@@ -18,7 +18,7 @@ param (
     [Parameter(Mandatory = $false, Position = 0)]
     [switch]$ManualInput = $false,
     [Parameter(Mandatory = $false, Position = 1)]
-    [string]$LocalCruiseFile = "C:\temp\FastCruise\FastCruiseFile.csv"
+    [string]$LocalCruiseFile = "C:\temp\FastCruiseTest.csv"
 )
 
 # Check if the S: drive is mapped
