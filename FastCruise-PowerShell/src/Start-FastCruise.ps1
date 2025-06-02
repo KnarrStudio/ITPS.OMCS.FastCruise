@@ -14,7 +14,7 @@ Import-Module -Name ./Start-ApplicationTest.psm1 -Verbose
 Import-Module -Name ./Show-VbForm.psm1 -Verbose
 Import-Module -Name ./Show-AsciiMenu.psm1 -Verbose
 
-param (
+<# param (
     [Parameter(Mandatory = $false, Position = 0)]
     [switch]$ManualInput = $false,
     [Parameter(Mandatory = $false, Position = 1)]
@@ -41,7 +41,7 @@ if (-not (Test-Path -Path $ExportPath)) {
 if (-not (Test-Path -Path $LocalCruiseFile)) {
     Write-Verbose -Message 'Creating Local File.'
     #$null = New-Item -Path $LocalCruiseFile -ItemType File -Force
-}
+} #>
  
     # Get installed software details as objects
     $SoftwareList = Get-InstalledSoftware -SoftwareName 'InstallRoot', 'Mozilla Firefox', 'KeePass', 'NetWorx'
