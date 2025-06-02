@@ -19,14 +19,14 @@ param (
  # {    [string]$FastCruiseReportPath = 'S:\',
     [string]$FastCruiseFile = 'FastCruise.csv',:Enter a comment or description}
 #>
-    [switch]$ManualInput,
+    #[switch]$ManualInput,
     #[string]$JsonFilePath = "..\ITPS.OMCS.FastCruise\config\ComputerLocation.json",
     [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
 )
 
 # Check if the S: drive is mapped
 if (-not (Get-PSDrive -Name S -ErrorAction SilentlyContinue)) {
-    New-PSDrive -Name S -PSProvider FileSystem -Root '\\localhost\Folder-1' -Persist
+    New-PSDrive -Name S -PSProvider FileSystem -Root '\\localhost\Folder-1'
 }
 
 [string]$FastCruiseReportPath = 'S:\'
@@ -43,7 +43,7 @@ if (-not (Test-Path -Path $ExportPath)) {
 # Create local file if it doesn't exist
 if (-not (Test-Path -Path $LocalCruiseFile)) {
     Write-Verbose -Message 'Creating Local File.'
-    $null = New-Item -Path $LocalCruiseFile -ItemType File -Force
+    #$null = New-Item -Path $LocalCruiseFile -ItemType File -Force
 }
  
     # Get installed software details as objects
