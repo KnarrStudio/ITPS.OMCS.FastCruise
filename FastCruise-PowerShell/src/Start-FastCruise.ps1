@@ -15,13 +15,10 @@ Import-Module -Name ./Show-VbForm.psm1 -Verbose
 Import-Module -Name ./Show-AsciiMenu.psm1 -Verbose
 
 param (
-<#
- # {    [string]$FastCruiseReportPath = 'S:\',
-    [string]$FastCruiseFile = 'FastCruise.csv',:Enter a comment or description}
-#>
-    #[switch]$ManualInput,
-    #[string]$JsonFilePath = "..\ITPS.OMCS.FastCruise\config\ComputerLocation.json",
-    [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
+    [Parameter(Mandatory = $false, Position = 0)]
+    [switch]$ManualInput = $false,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [string]$LocalCruiseFile = "C:\temp\FastCruise\FastCruiseFile.csv"
 )
 
 # Check if the S: drive is mapped
