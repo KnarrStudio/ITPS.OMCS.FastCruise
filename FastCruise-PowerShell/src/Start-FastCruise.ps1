@@ -19,8 +19,8 @@ param (
  # {    [string]$FastCruiseReportPath = 'S:\',
     [string]$FastCruiseFile = 'FastCruise.csv',:Enter a comment or description}
 #>
-    [switch]$ManualInput = $false,
-    [string]$JsonFilePath = 'C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json',
+    [switch]$ManualInput,
+    #[string]$JsonFilePath = "..\ITPS.OMCS.FastCruise\config\ComputerLocation.json",
     [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
 )
 
@@ -29,6 +29,7 @@ if (-not (Get-PSDrive -Name S -ErrorAction SilentlyContinue)) {
     New-PSDrive -Name S -PSProvider FileSystem -Root '\\localhost\Folder-1' -Persist
 }
 
+[string]$FastCruiseReportPath = 'S:\'
 # Export file path
 $ExportPath = Join-Path -Path $FastCruiseReportPath -ChildPath $FastCruiseFile
 
@@ -54,7 +55,7 @@ if (-not (Test-Path -Path $LocalCruiseFile)) {
     $Software_DisplayName     = ($SoftwareList | ForEach-Object { $_.DisplayName })     -join '; '
 
     # Get location details
-    $Location = Get-ComputerLocation -jsonFilePath $jsonFilePath
+    $Location = Get-ComputerLocation 
 
     $ComputerStat = [PSCustomObject]@{
         ComputerName           = Get-WorkstationInfo -Info 'Name'

@@ -3,8 +3,7 @@ function Get-ComputerLocation
     param
     (
         [Parameter(Mandatory = $false, Position = 0)]
-        [AllowNull()]
-        [String]$jsonFilePath
+        [String]$jsonFilePath = "$PSScriptRoot\..\config\ComputerLocation.json"
     )
 
     if (Test-Path -Path $jsonFilePath -ErrorAction SilentlyContinue)
