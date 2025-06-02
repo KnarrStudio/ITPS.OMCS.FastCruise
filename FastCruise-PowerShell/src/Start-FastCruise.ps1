@@ -15,8 +15,10 @@ Import-Module -Name ./Show-VbForm.psm1 -Verbose
 Import-Module -Name ./Show-AsciiMenu.psm1 -Verbose
 
 param (
-    [string]$FastCruiseReportPath = 'S:\',
-    [string]$FastCruiseFile = 'FastCruise.csv',
+<#
+ # {    [string]$FastCruiseReportPath = 'S:\',
+    [string]$FastCruiseFile = 'FastCruise.csv',:Enter a comment or description}
+#>
     [switch]$ManualInput = $false,
     [string]$JsonFilePath = "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json",
     [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
