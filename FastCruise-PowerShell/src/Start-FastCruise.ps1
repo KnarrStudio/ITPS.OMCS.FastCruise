@@ -20,7 +20,7 @@ param (
     [string]$FastCruiseFile = 'FastCruise.csv',:Enter a comment or description}
 #>
     [switch]$ManualInput = $false,
-    [string]$JsonFilePath = "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json",
+    [string]$JsonFilePath = 'C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json',
     [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
 )
 
