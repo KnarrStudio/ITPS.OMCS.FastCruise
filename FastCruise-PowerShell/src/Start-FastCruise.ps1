@@ -18,9 +18,14 @@ param (
     [string]$FastCruiseReportPath = 'S:\',
     [string]$FastCruiseFile = 'FastCruise.csv',
     [switch]$ManualInput = $false,
-    [string]$JsonFilePath = "$env:OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json",
+    [string]$JsonFilePath = "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json",
     [string]$LocalCruiseFile = "$env:HOMEDRIVE\temp\FastCruise\FastCruiseFile.csv"
 )
+
+# Check if the S: drive is mapped
+if (-not (Get-PSDrive -Name S -ErrorAction SilentlyContinue)) {
+    New-PSDrive -Name S -PSProvider FileSystem -Root '\\localhost\Folder-1' -Persist
+}
 
 # Export file path
 $ExportPath = Join-Path -Path $FastCruiseReportPath -ChildPath $FastCruiseFile
@@ -31,10 +36,6 @@ if (-not (Test-Path -Path $ExportPath)) {
     $null = New-Item -Path $ExportPath -ItemType File -Force
 }
 
-# Check if the S: drive is mapped
-if (-not (Get-PSDrive -Name S -ErrorAction SilentlyContinue)) {
-    New-PSDrive -Name S -PSProvider FileSystem -Root '\\localhost\Folder-1' -Persist
-}
 
 # Create local file if it doesn't exist
 if (-not (Test-Path -Path $LocalCruiseFile)) {
