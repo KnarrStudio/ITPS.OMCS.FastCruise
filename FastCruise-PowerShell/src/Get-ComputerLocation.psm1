@@ -11,28 +11,27 @@ function Get-ComputerLocation
         Write-Verbose -Message 'Using JSON File'
         $location = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
 
-        # Direct property access from JSON object
+        # Department selection
         $deptNames = $location.Department.PSObject.Properties.Name
-        $LclDept = $deptNames | Out-GridView -Title 'Department' -OutputMode Single
+        $LclDept = Show-VbDropdownForm -Message 'Select Department:' -InputFile ([string[]]$deptNames) -TitleBar 'Department'
 
+        # Building selection
         $buildNames = $location.Department.$LclDept.Building.PSObject.Properties.Name
-        $LclBuild = $buildNames | Out-GridView -Title 'Building' -OutputMode Single
+        $LclBuild = Show-VbDropdownForm -Message 'Select Building:' -InputFile ([string[]]$buildNames) -TitleBar 'Building'
 
+        # Room selection
         $roomList = $location.Department.$LclDept.Building.$LclBuild.Room
-        $LclRm = $roomList | Out-GridView -Title 'Room' -OutputMode Single
+        $LclRm = Show-VbDropdownForm -Message 'Select Room:' -InputFile ([string[]]$roomList) -TitleBar 'Room'
 
-        # If $Desk is not defined in this scope, define a default list
+        # Desk selection
         if (-not $Desk) { $Desk = @('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q') }
-        $LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
+        $LclDesk = Show-VbDropdownForm -Message 'Select Desk:' -InputFile ([string[]]$Desk) -TitleBar 'Desk'
     }
     else
     {
-        Write-Verbose -Message 'Unable to find or use JSON File'
-        $LclDept = Show-VbForm -InputBox -Message 'Department: Produce, Bakery, Dairy' -TitleBar 'Department' -DefaultValue 'Other'
-        $LclBuild = Show-VbForm -InputBox -Message 'Building: Office-4, Bay-34' -TitleBar 'Building' -DefaultValue 'Office'
-        $LclRm = Show-VbForm -InputBox -Message 'Room Number:' -TitleBar 'Room' -DefaultValue 1
-        if (-not $Desk) { $Desk = @('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q') }
-        $LclDesk = $Desk | Out-GridView -Title 'Desk' -OutputMode Single
+        Write-Error "Unable to find or use JSON File: $jsonFilePath"
+        # [TAGGED: ManualInputFallback] -- Placeholder for future manual input logic
+        return
     }
 
     # Return the collected data as a PSCustomObject
