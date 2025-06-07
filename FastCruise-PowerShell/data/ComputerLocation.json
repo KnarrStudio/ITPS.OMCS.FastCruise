@@ -3,21 +3,27 @@
     "Produce": {
       "Building": {
         "Office-4": {
-          "Room": "101"
+          "Room": ["101", "102", "103"]
         }
       }
     },
     "Bakery": {
       "Building": {
         "Bay-34": {
-          "Room": "202"
+          "Room": ["200"]
+        },
+        "Bay-35": {
+          "Room": ["200"]
+        },
+        "Bay-36": {
+          "Room": ["200"]
         }
       }
     },
     "Dairy": {
       "Building": {
         "Warehouse": {
-          "Room": "303"
+          "Room": ["303", "304", "305", "306"]
         }
       }
     }
