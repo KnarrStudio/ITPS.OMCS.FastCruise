@@ -52,8 +52,11 @@ if (-not (Test-Path -Path $LocalCruiseFile)) {
     $Software_DisplayName     = ($SoftwareList | ForEach-Object { $_.DisplayName })     -join '; '
 
     # Get location details
-    $Location = Get-ComputerLocation 
-
+    $Location = Get-ComputerLocation -jsonfilePath "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json"
+    if (-not $Location) {
+        Write-Error -Message 'No location information found. Please check the JSON file.'
+        return
+    }
     $ComputerStat = [PSCustomObject]@{
         ComputerName           = Get-WorkstationInfo -Info 'Name'
         SerialNumber           = Get-WorkstationInfo -Info 'serialnumber'

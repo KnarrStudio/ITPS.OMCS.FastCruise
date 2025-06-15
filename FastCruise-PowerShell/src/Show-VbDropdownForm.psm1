@@ -4,8 +4,8 @@ function Show-VbDropdownForm
     param(
         [Parameter(Mandatory, Position = 0)]
         [string]$Message,
-        [Parameter(Mandatory, Position = 1)]
-        [string]$InputFile,  # Path to JSON or text file
+        [Parameter(Position = 1)]
+        [string]$InputFile = "C:\Users\erika\OneDrive\Documents\GitHub\ITPS.OMCS.FastCruise\Configfiles\computerlocation.json",  # Path to JSON or text file
         [Parameter(Position = 2)]
         [string]$TitleBar = 'Fast Cruise'
     )
