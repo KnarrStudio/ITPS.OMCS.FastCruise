@@ -1,61 +1,129 @@
-# FastCruise PowerShell Project
+# FastCruise PowerShell
 
-## Overview
-The FastCruise PowerShell project is designed to streamline the process of gathering and reporting workstation information, installed software, and facility issues. This modular approach allows for better organization and maintainability of the code.
+A quick operational test ("Fast Cruise") of workstations. Captures the date,
+time, and user who performed the check, records hardware/software facts
+automatically, and walks the technician through a short set of prompts for
+physical location, phone number, notes, and facility issues.
 
-## Project Structure
+This is a refactor of the original single-file `Start-FastCruise.ps1` script
+into a proper PowerShell module, a shared logging module, and one editable
+configuration file. It replaces both `Scripts/` and the earlier, incomplete
+`FastCruise-PowerShell/` folder in this repository.
+
+## Project layout
+
 ```
-FastCruise-PowerShell
-├── src
-│   ├── Start-FastCruise.ps1
-│   ├── Get-InstalledSoftware.ps1
-│   ├── Get-WorkstationInfo.ps1
-│   ├── Get-MacAddress.ps1
-│   ├── Get-ComputerLocation.ps1
-│   ├── Get-LastComputerStatus.ps1
-│   ├── Get-FacilityIssues.ps1
-│   ├── Start-ApplicationTest.ps1
-│   ├── Show-VbForm.ps1
-│   ├── Show-AsciiMenu.ps1
-│   └── utils
-│       └── Convert-JSONToHash.ps1
-├── scripts
-│   └── Run-FastCruise.ps1
-├── data
-│   └── ComputerLocation.json
-├── README.md
+FastCruise-PowerShell/
+├── Run-FastCruise.ps1              <- what you actually run
+├── Config/
+│   ├── FastCruise.config.psd1      <- EDIT THIS for your site (paths, software list, desk labels, etc.)
+│   ├── ComputerLocation.json       <- Department > Building > Room reference data used by the location picker
+│   └── ComputerLocation.hashtable.psd1   <- easier-to-edit source for ComputerLocation.json (see ConvertTo-LocationJson)
+├── Modules/
+│   ├── FCLogging/                  <- common logging module, reusable by any script in this repo
+│   │   ├── FCLogging.psd1
+│   │   └── FCLogging.psm1
+│   └── FastCruise/                 <- the FastCruise module itself
+│       ├── FastCruise.psd1
+│       ├── FastCruise.psm1
+│       ├── Public/                 <- exported functions (Start-FastCruise, Export-ComputerDescription, ConvertTo-LocationJson, Show-FastCruiseMenu)
+│       └── Private/                <- internal helper functions
+└── Reports/                        <- default local landing spot for generated reports
 ```
 
-## Installation
-1. Clone the repository to your local machine.
-2. Open PowerShell and navigate to the project directory.
-3. Ensure that you have the necessary permissions to run scripts. You may need to set the execution policy:
-   ```powershell
-   Set-ExecutionPolicy RemoteSigned
-   ```
+## Requirements
+
+- Windows, with Windows PowerShell 5.1 **or** PowerShell 7+ (`pwsh`).
+- The `NetAdapter` module (ships with Windows) for MAC address lookups.
+- Domain-joined workstation for the network report path; falls back to a
+  local temp path automatically if the domain isn't reachable.
 
 ## Usage
-To run the FastCruise application, execute the `Run-FastCruise.ps1` script located in the `scripts` directory. This script serves as a wrapper to initiate the main functionality of the application.
 
-```powershell
-.\scripts\Run-FastCruise.ps1
-```
+1. Edit `Config\FastCruise.config.psd1` for your site: report paths, the
+   software versions to check, desk labels, application tests, and logging
+   options. **You should not need to edit any `.ps1` or `.psm1` file to
+   reconfigure FastCruise for a new location.**
+2. Edit `Config\ComputerLocation.json` (or edit
+   `ComputerLocation.hashtable.psd1` and run `ConvertTo-LocationJson`) to
+   describe your Department/Building/Room hierarchy.
+3. Run it:
 
-## Script Descriptions
-- **Start-FastCruise.ps1**: Main entry point for the FastCruise application. Initializes the script and calls necessary functions.
-- **Get-InstalledSoftware.ps1**: Retrieves a list of installed software on the workstation.
-- **Get-WorkstationInfo.ps1**: Retrieves various information about the workstation, such as manufacturer and model.
-- **Get-MacAddress.ps1**: Retrieves the MAC address of the workstation's network adapter.
-- **Get-ComputerLocation.ps1**: Retrieves computer location information from a JSON file or prompts for user input.
-- **Get-LastComputerStatus.ps1**: Imports the last recorded status of the workstation from a CSV file.
-- **Get-FacilityIssues.ps1**: Allows users to report issues related to the facility and writes them to a text file.
-- **Start-ApplicationTest.ps1**: Tests whether specified applications can be launched successfully.
-- **Show-VbForm.ps1**: Creates and displays a Visual Basic form for user input.
-- **Show-AsciiMenu.ps1**: Creates a simple ASCII menu for user interaction.
-- **Convert-JSONToHash.ps1**: Converts a JSON object into a PowerShell hash table for easier manipulation.
+   ```powershell
+   .\Run-FastCruise.ps1
+   ```
 
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
+   Useful variations:
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+   ```powershell
+   # Record an entry by hand instead of via auto-detection
+   .\Run-FastCruise.ps1 -ManualInput
+
+   # Run one check and exit, without the follow-up menu (e.g. from a scheduled task)
+   .\Run-FastCruise.ps1 -NoMenu
+
+   # Use a config file somewhere else
+   .\Run-FastCruise.ps1 -ConfigPath 'D:\FastCruiseConfigs\Warehouse.config.psd1'
+   ```
+
+4. After a batch of Fast Cruises, build an Active Directory description list:
+
+   ```powershell
+   Import-Module .\Modules\FastCruise\FastCruise.psd1
+   Export-ComputerDescription -InputReportFile 'S:\FastCruise\FastCruise_2026-July.csv' -OutputListFile 'S:\FastCruise\ComputerDescriptions.csv'
+   ```
+
+## What changed from the original scripts
+
+- **Modules instead of one big script.** Each piece of functionality
+  (installed-software lookup, workstation info, MAC address, location
+  picker, facility issues, application test, file I/O) is now its own
+  documented function in `Modules\FastCruise\Private`, imported by the
+  `FastCruise` module. `Start-FastCruise` orchestrates them instead of
+  defining them inline on every run.
+- **A common logging module (`FCLogging`).** Every function calls
+  `Write-FCLog` instead of a mix of `Write-Verbose`/`Write-Warning`/
+  `Write-Output`. Log lines are timestamped, leveled, color-coded on
+  screen, and appended to a monthly rolling log file.
+- **Comment-based help everywhere.** Every function in every module has a
+  full `.SYNOPSIS` / `.DESCRIPTION` / `.PARAMETER` / `.EXAMPLE` block —
+  run `Get-Help <FunctionName> -Full` for any of them.
+- **One config file, not values buried in code.** Software checks, desk
+  labels, all file paths, the phone-number pattern, and application-test
+  definitions moved from hardcoded script variables into
+  `Config\FastCruise.config.psd1`.
+- **Hashtable conversion removed.** `Convert-JSONToHash` is gone.
+  `ConvertFrom-Json` already returns a navigable object; the location
+  picker reads it directly.
+- **Uniform file formats.** All CSV reads/writes go through
+  `Export-FastCruiseRecord` / `Import-FastCruiseRecord`, and all JSON/text
+  writes go through `Set-FCContent` / `Add-FCContent`, so every file this
+  project produces is UTF-8 without a byte-order-mark, regardless of
+  whether it was written by Windows PowerShell 5.1 or PowerShell 7. (The
+  original `Configfiles\computerlocation.json` was UTF-16 while the CSV
+  reports were not - that inconsistency is what prompted this.)
+- **One consistent prompt UI.** `Show-InputDialog`, `Show-ConfirmDialog`,
+  and `Show-SelectionDialog` (all Windows Forms) replace the mix of
+  `Microsoft.VisualBasic` InputBox/MsgBox and `Out-GridView` pickers used
+  before, and work the same way on PowerShell 7+ as on 5.1.
+- **`Get-WmiObject` replaced with `Get-CimInstance`** for PowerShell 7+
+  compatibility.
+- **Bug fix:** `Start-ApplicationTest` now actually launches `TestProgram`
+  with `TestFile` as its argument (the original opened `TestFile` directly
+  and never used `TestProgram`).
+- **Duplicate logic removed:** the "last four characters of a MAC address"
+  formatting existed almost identically in both the main script and
+  `Export-ComputerDescription.ps1`; it is now one shared helper
+  (`ConvertTo-MacAddressSuffix`).
+
+## Retired
+
+- `Scripts\Log-Inventory.ps1` and `Scripts\Log-Inventory.ps1.bak` - an
+  earlier, parallel version of the same script. Superseded by this project;
+  kept in git history but not carried forward.
+- `Configfiles\computerlocation.json` and `Scripts\computerlocation.json` -
+  byte-identical duplicates of the same file. Superseded by the single
+  `Config\ComputerLocation.json`.
+- The original `FastCruise-PowerShell\` module attempt - incomplete (missing
+  WSUS/domain detection, the menu, several fields) and contained a
+  hardcoded personal file path. This project replaces it.

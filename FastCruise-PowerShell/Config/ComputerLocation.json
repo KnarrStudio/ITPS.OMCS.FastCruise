@@ -1,0 +1,21 @@
+{
+    "Department": {
+        "Shipping": {
+            "Building": {
+                "Warehouse1": {
+                    "Room": [8, 20]
+                },
+                "Warehouse2": {
+                    "Room": [1, 6]
+                }
+            }
+        },
+        "Sales": {
+            "Building": {
+                "TrumpTower": {
+                    "Room": [101, 102, 103, 104, 105, 106]
+                }
+            }
+        }
+    }
+}
